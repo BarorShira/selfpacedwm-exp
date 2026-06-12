@@ -10,41 +10,123 @@ const FIXATION_DURATION_MS  = 1500;   // fixation cross duration (ms)
 const IMAGE_DURATION_MS     = 800;    // object presentation duration (ms)
 
 /** ─────────────────────────────────────────────
- *  EXPERIMENT PARAMETERS  (do not change unless redesigning)
+ *  STIMULUS LIST  (432 actual image filenames)
  * ───────────────────────────────────────────── */
-const N_TOTAL_OBJECTS   = 432;
-const TRIALS_PER_BLOCK  = 20;
-const N_SELF_PACED_BLOCKS = 5;
-const N_TOTAL_BLOCKS    = N_SELF_PACED_BLOCKS * 2;   // 10 blocks total
-const OBJECTS_PER_PAIR  = TRIALS_PER_BLOCK * 2;      // 40 per SP+Yoked pair
+const STIMULI = [
+  "witchhat.png","goose.png","golfclubs.png","goldcup.png","goblet.png",
+  "globe.png","glasscup.png","glasscontainer.png","glassbottle.png","glass2.png",
+  "glass.png","giftribbon.png","garlicpress.png","gardeningrak.png","garbagebin2.png",
+  "garbagebag.png","fanStanding.png","fan.png","eyedrops2.png","exit.png",
+  "excersiceequipment.png","exactoknife.png","drinkingpitcher.png","drinkingbottle.png",
+  "drinkglass.png","dresser.png","dress.png","doublehook.png","doorhandle.png",
+  "door.png","domino.png","doll.png","dog.png","dishwashingsoap.png",
+  "portablepotty.png","quilt.png","promdress.png","rake.png","punchingbag3.png",
+  "railwaysign.png","rasor.png","purse.png","postalmailbox.png","punchingbag2.png",
+  "rake2.png","broom.png","adjustable.png","africanmask.png","alarmclock.png",
+  "amphora.png","anchor.png","angelstatue.png","arch2.png","artichoke.png",
+  "asparagus.png","avocado.png","axe.png","babybottle.png","baloon.png",
+  "bandaid.png","barbie.png","barrel2.png","baseballbat.png","bookshelf.png",
+  "candle.png","carrots.png","deskchair.png","airfreshener.png","bag.png",
+  "barchair.png","barchair2.png","basket.png","bathrobe.png","bathroomsink.png",
+  "battery.png","beaver.png","beerbottle.png","beermug.png","bell2.png",
+  "beverage.png","bib.png","bikepump.png","bin.png","birdcage2.png",
+  "birdhouse.png","birdhouse2.png","bishop.png","blender.png","bloodorange.png",
+  "bottle.png","bowloffruit.png","boxcutter.png","boxinggloves.png","broccoli.png",
+  "brochette.png","brooch.png","brush.png","bucket.png","buddha.png",
+  "building.png","bunnytoy.png","cactus.png","carseat.png","cheesegreater.png",
+  "closedumbrella.png","bullet.png","cabinet.png","cake.png","calculator.png",
+  "candle2.png","candles.png","candlestick.png","candyjar.png","cane.png",
+  "canister.png","carkey.png","carrot.png","castletower.png","celery.png",
+  "cello.png","chairs.png","champane.png","cherry.png","chessknight.png",
+  "chicken.png","childbed.png","chocolate.png","chocolatemilk.png","chopsticks.png",
+  "christmasslightbulb.png","christmasstree.png","christmasstree2.png","clarinet.png",
+  "cleaningbrush.png","closet.png","clothespin.png","clover.png","coathanger.png",
+  "coctailumbrella.png","codedoorlock.png","coffeemaker.png","cookiecutter.png",
+  "danger.png","lamp.png","cobra.png","coffeemug2.png","comb.png",
+  "combRegular.png","compass.png","computermouse.png","concreteblock.png","cone.png",
+  "crotches.png","cucumber.png","cup.png","curtain2.png","daquiri.png",
+  "dart.png","die.png","drum.png","drumsticks.png","dryflowers.png",
+  "dumbell.png","duster.png","dustpan.png","dynamite.png","earexam.png",
+  "earring.png","earsirynge.png","eggcup.png","icecream.png","jacket.png",
+  "duck.png","eagle.png","egret.png","eiffeltower.png","electricguitar.png",
+  "emergency.png","icecreamcone.png","ironning.png","jarofcapers.png","jeans.png",
+  "jesusstatue.png","juice.png","kangaroo.png","ketchup.png","kettle.png",
+  "key.png","keychain.png","kidstoyrings.png","kitchenaid.png","knifeRegular.png",
+  "knitteddoll.png","lace.png","ladder.png","ladle.png","lantern.png",
+  "leaf.png","leek.png","legcast.png","legoman.png","lighthouse.png",
+  "makeupbrush.png","mountaingoat.png","nasalspray.png","easel.png","easteregg.png",
+  "feather.png","fighter.png","filescabinet.png","fireextinguisher.png","flower.png",
+  "foodblender.png","foot.png","fridge2.png","guitar.png","harp.png",
+  "lightbulb2.png","lighter.png","lipstick.png","livingroomlamp.png","lockerdoor.png",
+  "lollipop.png","mailbox.png","maplesyrup.png","marbles.png","masher.png",
+  "maskara.png","match.png","medal.png","menorah.png","mic.png",
+  "microphone.png","microscope.png","milkjug2.png","milkshake.png","minitree.png",
+  "mixinghook.png","mug.png","musicstand.png","opener2.png","suit.png",
+  "fence.png","flashlight.png","footballball2.png","fork.png","fullbucket.png",
+  "funnel.png","galloncontainer.png","granade.png","hoodie.png","moneyjar.png",
+  "nail.png","nailpolish2.png","nunchaku.png","ornament.png","ostrich.png",
+  "ovenmit.png","pacifier.png","padlock.png","pager.png","paintbrush2.png",
+  "paintbucket.png","palmtree.png","pan.png","paperbag.png","paperclip.png",
+  "grater.png","gravestone.png","grocerybag.png","gumballmachine.png","hairbrush.png",
+  "haircomb.png","hammer.png","hamper.png","handpuppet.png","headphones.png",
+  "herbbag.png","hook.png","hotpepper.png","paintroller.png","papertowel.png",
+  "parfait.png","parkingmeter2.png","parsley.png","partyhat.png","payphone.png",
+  "pealer.png","pealer2.png","pear.png","pen.png","pencils.png",
+  "pepper.png","perfumebottle.png","phone.png","pickles.png","pin.png",
+  "pitcher.png","plant.png","popsicle.png","trophy2.png","hotairbaloon.png",
+  "hotdog.png","hotwaterbottle.png","hourglass.png","hydrant.png","peppermill.png",
+  "phonebooth.png","pictureframe.png","pieserver.png","pineapple.png","pinecone.png",
+  "pinguin.png","pintofbeer.png","pizzacutter.png","plant2.png","plier.png",
+  "redbull.png","remotecontrol.png","ribbon.png","rice.png","rocket.png",
+  "rollingpin.png","rose2.png","ruler.png","shavingmachine.png","rope.png",
+  "rose.png","roses.png","rubberboots.png","rug.png","safetypin.png",
+  "saltshaker.png","sandcastle.png","sauce.png","scissors.png","scooter.png",
+  "screw.png","screwdriver.png","screwdriver_round.png","seashell.png","secateurs.png",
+  "sharpknife.png","shaving.png","shipmodel.png","shirtskirt.png","shovel.png",
+  "shower.png","showerhead.png","sirynge.png","skirt.png","slippers.png",
+  "smallvase.png","spagetyserver.png","speaker.png","spraybottle.png","statue2.png",
+  "stringspool.png","skateboard.png","skeleton.png","spatula.png","spicerack.png",
+  "spoon.png","spring.png","stepladder.png","stool.png","strawberry.png",
+  "streetlamp.png","streetpost.png","studentchair.png","suit2.png","suitcase.png",
+  "surfing.png","sword2.png","tabasco.png","teddybear.png","teepee.png",
+  "telephonebooth.png","tennisracket.png","testtube.png","thread.png","toiletbrush.png",
+  "toothpaste.png","trafficlight.png","tulip.png","thermiccup.png","thumbtack.png",
+  "tie.png","timepiece.png","toilet.png","toiletplung.png","toothbrush.png",
+  "totem.png","toyperson.png","trashbin.png","travelmug.png","tree.png",
+  "trickortreat.png","tripod.png","trumpet.png","tube.png","tweezers.png",
+  "umbrella.png","vampire.png","vase2.png","vase3.png","walker.png",
+  "watch2.png","waterbottle.png","watercooler.png","waterjub.png","well.png",
+  "winebottle2.png","beachpail.png","beachumbrella.png","seahorse.png","soapbottle.png",
+  "walkietalkie.png","wardrobe.png","washer.png","watercan.png","waterkettle.png",
+  "weddingcake.png","wetsuit.png","wickchair.png","windchimes.png","wineglass.png",
+  "winterglove.png","wintersock.png","woodenhammer.png","woodenspoons.png","zucchini.png"
+];
 
-/** Delay / colour parameters */
-const HUE_CYCLE_DURATION  = 6.0;   // seconds for one full hue cycle (self-paced)
+/** ─────────────────────────────────────────────
+ *  EXPERIMENT PARAMETERS
+ * ───────────────────────────────────────────── */
+const N_TOTAL_OBJECTS     = STIMULI.length;  // 432
+const TRIALS_PER_BLOCK    = 20;
+const N_SELF_PACED_BLOCKS = 5;
+const N_TOTAL_BLOCKS      = N_SELF_PACED_BLOCKS * 2;
+const OBJECTS_PER_PAIR    = TRIALS_PER_BLOCK * 2;
+
+const HUE_CYCLE_DURATION  = 6.0;
 const DEFAULT_HUE_SPEED   = 1.0 / HUE_CYCLE_DURATION;
 
-/** Reward parameters (from wWM_reward_scheme_final.docx) */
 const REWARD = {
-  theta        : 15.0,   // accuracy gate (degrees)
-  alpha        : 2.0,    // accuracy curvature
-  D_max        : 10.0,   // max credited delay (s)
-  d_min        : 1.25,   // minimum rewarded delay (s)
-  tau          : 1.2,    // delay curvature
-  B            : 10.0,   // max confidence bonus
-  w_max        : 25.0,   // wedge half-width at which bonus → 0
-  gamma        : 1.0,    // confidence taper
+  theta: 15.0, alpha: 2.0, D_max: 10.0, d_min: 1.25,
+  tau: 1.2, B: 10.0, w_max: 25.0, gamma: 1.0,
 };
 
-/** Rotation / confidence parameters */
-const ROT_INCREASE_PER_FRAME = 0.25;   // degrees added to speed each frame (held)
-const ROT_MAX_SPEED          = 5.0;    // speed cap before reset
+const ROT_INCREASE_PER_FRAME = 0.25;
+const ROT_MAX_SPEED          = 5.0;
 const ROT_INITIAL_SPEED      = 0.5;
-const MIN_WEDGE_GAP          = 0.7;    // minimum wedge width (degrees)
+const MIN_WEDGE_GAP          = 0.7;
 
 /** ─────────────────────────────────────────────
  *  UTILITY FUNCTIONS
  * ───────────────────────────────────────────── */
-
-/** HSV (0-1 each) → CSS rgb(...) string */
 function hsvToRgb(h, s, v) {
   h = ((h % 1) + 1) % 1;
   const i = Math.floor(h * 6);
@@ -54,23 +136,18 @@ function hsvToRgb(h, s, v) {
   const t = v * (1 - (1 - f) * s);
   let r, g, b;
   switch (i % 6) {
-    case 0: r=v; g=t; b=p; break;
-    case 1: r=q; g=v; b=p; break;
-    case 2: r=p; g=v; b=t; break;
-    case 3: r=p; g=q; b=v; break;
-    case 4: r=t; g=p; b=v; break;
-    case 5: r=v; g=p; b=q; break;
+    case 0: r=v; g=t; b=p; break; case 1: r=q; g=v; b=p; break;
+    case 2: r=p; g=v; b=t; break; case 3: r=p; g=q; b=v; break;
+    case 4: r=t; g=p; b=v; break; case 5: r=v; g=p; b=q; break;
   }
   return `rgb(${Math.round(r*255)},${Math.round(g*255)},${Math.round(b*255)})`;
 }
 
-/** Circular angular distance (0–180 degrees) */
 function angularDistance(a1, a2) {
   const diff = Math.abs(a1 - a2) % 360;
   return Math.min(diff, 360 - diff);
 }
 
-/** Fisher-Yates shuffle (in-place, returns array) */
 function shuffle(arr) {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -79,16 +156,12 @@ function shuffle(arr) {
   return arr;
 }
 
-/** Random integer in [lo, hi] inclusive */
 function randInt(lo, hi) {
   return lo + Math.floor(Math.random() * (hi - lo + 1));
 }
 
-/** Draw a filled arc (wedge) on a canvas 2D context.
- *  cx,cy = centre; r = radius; startDeg, endDeg = angles in degrees (0 = up, clockwise)
- *  fillStyle = CSS colour string */
 function drawWedge(ctx, cx, cy, r, startDeg, endDeg, fillStyle, alpha) {
-  const toRad = d => (d - 90) * Math.PI / 180;  // 0° = top
+  const toRad = d => (d - 90) * Math.PI / 180;
   ctx.save();
   ctx.globalAlpha = alpha !== undefined ? alpha : 0.4;
   ctx.beginPath();
@@ -101,123 +174,67 @@ function drawWedge(ctx, cx, cy, r, startDeg, endDeg, fillStyle, alpha) {
 }
 
 /** ─────────────────────────────────────────────
- *  EXPERIMENT STATE  (module-level, reset each trial)
+ *  EXPERIMENT STATE
  * ───────────────────────────────────────────── */
 const state = {
-  // Randomisation
-  allObjectRows: [],
-  // Block
-  expBlock: -1,
-  conditionType: '',
-  sourcePairN: -1,
-  rowsInBlock: [],
-  blockPoints: 0,
-  // Self-paced storage (filled during SP block, read during Yoked block)
-  lastSelfPaced_trialInBlock: [],
-  lastSelfPaced_objectRow: [],
-  lastSelfPaced_startOri1: [],
-  lastSelfPaced_delayDuration: [],
-  lastSelfPaced_bigPolygonFinalHue: [],
-  lastSelfPaced_smallPolygonHue: [],
-  // Yoked schedule (built at start of each yoked block)
-  currentYokedSchedule: [],
-  yoked_sourceTrialInBlock: [],
-  yoked_sourceObjectRow: [],
-  yoked_sourceOrientation: [],
-  yoked_sourceDelayDuration: [],
-  yoked_sourceFinalHue: [],
-  yoked_sourceSmallPolygonHue: [],
-  yoked_objectRow: [],
-  // Trial
-  trialInBlock: 0,
-  objectRow: 0,
-  startOri1: 0,
-  // Delay
-  smallPolygonHue: 0.0,
-  hue: 0.0,
-  hueStart: 0.0,
-  hueSpeed: DEFAULT_HUE_SPEED,
-  hueDistance: null,
-  targetHue: 0.0,
-  yokedScheduledDelay: null,
-  delayDuration: null,
-  bigPolygonFinalHue: null,
-  delayStartTime: null,
-  // Response
-  responseOri: 0,
-  adjustmentStartOri: 0,
-  thisOriT1: 0,
-  rotKeySpeed: ROT_INITIAL_SPEED,
-  // Confidence
-  confidenceOri1: 0,
-  confidenceOri2: 0,
-  confKeySpeed: 1.0,
-  confidenceWedgeWidth: 0,
-  // Reward
-  winningPoints: 0,
-  blockPointsTotal: 0,
-  feedbackText: '',
+  allObjectRows: [], expBlock: -1, conditionType: '', sourcePairN: -1,
+  rowsInBlock: [], blockPoints: 0,
+  lastSelfPaced_trialInBlock: [], lastSelfPaced_objectRow: [],
+  lastSelfPaced_startOri1: [], lastSelfPaced_delayDuration: [],
+  lastSelfPaced_bigPolygonFinalHue: [], lastSelfPaced_smallPolygonHue: [],
+  currentYokedSchedule: [], yoked_sourceTrialInBlock: [], yoked_sourceObjectRow: [],
+  yoked_sourceOrientation: [], yoked_sourceDelayDuration: [], yoked_sourceFinalHue: [],
+  yoked_sourceSmallPolygonHue: [], yoked_objectRow: [],
+  trialInBlock: 0, objectRow: 0, startOri1: 0,
+  smallPolygonHue: 0.0, hue: 0.0, hueStart: 0.0, hueSpeed: DEFAULT_HUE_SPEED,
+  hueDistance: null, targetHue: 0.0, yokedScheduledDelay: null,
+  delayDuration: null, bigPolygonFinalHue: null, delayStartTime: null,
+  responseOri: 0, adjustmentStartOri: 0, thisOriT1: 0, rotKeySpeed: ROT_INITIAL_SPEED,
+  confidenceOri1: 0, confidenceOri2: 0, confKeySpeed: 1.0, confidenceWedgeWidth: 0,
+  winningPoints: 0, feedbackText: '',
 };
 
-/** Collected trial data rows (for final POST) */
 const trialData = [];
 
+function recordTrial(extra) { trialData.push(Object.assign({}, extra)); }
+
 /** ─────────────────────────────────────────────
- *  DATA RECORDING HELPER
+ *  IMAGE PATH
  * ───────────────────────────────────────────── */
-function recordTrial(extra) {
-  trialData.push(Object.assign({}, extra));
+function imagePath(row) {
+  return `GrayObjectStimuli/${STIMULI[row]}`;
 }
 
 /** ─────────────────────────────────────────────
  *  REWARD CALCULATION
  * ───────────────────────────────────────────── */
 function computeReward(e, delayDuration, yokedScheduledDelay, conditionType, confidenceWedgeWidth) {
-  // 1. Credited delay
   let d_credit_raw;
-  if (conditionType === 'self_paced') {
-    d_credit_raw = delayDuration;
-  } else if (conditionType === 'yoked') {
-    d_credit_raw = Math.min(delayDuration, yokedScheduledDelay);
-  } else {
-    d_credit_raw = 0;
-  }
+  if (conditionType === 'self_paced') d_credit_raw = delayDuration;
+  else if (conditionType === 'yoked') d_credit_raw = Math.min(delayDuration, yokedScheduledDelay);
+  else d_credit_raw = 0;
 
-  // 2. Clamp delay
   const d = Math.min(Math.max(d_credit_raw, 0), REWARD.D_max);
-
-  // 3. Delay score
   const effectiveDelay = Math.max(d - REWARD.d_min, 0);
   const effectiveDmax  = REWARD.D_max - REWARD.d_min;
   let D = 0;
-  if (effectiveDelay > 0 && effectiveDmax > 0) {
-    D = Math.log(1 + effectiveDelay / REWARD.tau) /
-        Math.log(1 + effectiveDmax  / REWARD.tau);
-  }
+  if (effectiveDelay > 0 && effectiveDmax > 0)
+    D = Math.log(1 + effectiveDelay / REWARD.tau) / Math.log(1 + effectiveDmax / REWARD.tau);
 
-  // 4. Accuracy score
   let A = 0, accuracyEligible = 0;
-  if (e < REWARD.theta) {
-    accuracyEligible = 1;
-    A = 1 - Math.pow(e / REWARD.theta, REWARD.alpha);
-  }
+  if (e < REWARD.theta) { accuracyEligible = 1; A = 1 - Math.pow(e / REWARD.theta, REWARD.alpha); }
 
-  // 5. Base reward
   const R_base = 100 * accuracyEligible * A * D;
-
-  // 6. Confidence bonus (uses half-width)
   const w = Math.min(Math.max(confidenceWedgeWidth / 2.0, 0), REWARD.w_max);
   let R_conf = 0;
-  if (e <= w && e < REWARD.theta && d >= REWARD.d_min) {
+  if (e <= w && e < REWARD.theta && d >= REWARD.d_min)
     R_conf = REWARD.B * (1 - Math.pow(w / REWARD.w_max, REWARD.gamma));
-  }
 
   return { d, d_credit_raw, D, A, R_base, R_conf, total: R_base + R_conf, w };
 }
 
 /** ─────────────────────────────────────────────
- *  BLOCK SETTINGS LOGIC
- *  (was "Syntax Error" in original JS — written fresh here)
+ *  BLOCK SETTINGS
  * ───────────────────────────────────────────── */
 function applyBlockSettings(expBlock) {
   state.expBlock    = expBlock;
@@ -225,53 +242,29 @@ function applyBlockSettings(expBlock) {
   state.sourcePairN = Math.floor(expBlock / 2);
 
   if (expBlock % 2 === 0) {
-    // ── SELF-PACED BLOCK ──
     state.conditionType = 'self_paced';
-
     const pairStart = state.sourcePairN * OBJECTS_PER_PAIR;
     state.rowsInBlock = state.allObjectRows.slice(pairStart, pairStart + TRIALS_PER_BLOCK);
-
-    // Reset storage that the following yoked block will read
-    state.lastSelfPaced_trialInBlock      = [];
-    state.lastSelfPaced_objectRow         = [];
-    state.lastSelfPaced_startOri1         = [];
-    state.lastSelfPaced_delayDuration     = [];
-    state.lastSelfPaced_bigPolygonFinalHue = [];
-    state.lastSelfPaced_smallPolygonHue   = [];
-    state.currentYokedSchedule            = [];
-    state.yoked_sourceTrialInBlock        = [];
-    state.yoked_sourceObjectRow           = [];
-    state.yoked_sourceOrientation         = [];
-    state.yoked_sourceDelayDuration       = [];
-    state.yoked_sourceFinalHue            = [];
-    state.yoked_sourceSmallPolygonHue     = [];
-    state.yoked_objectRow                 = [];
-
+    state.lastSelfPaced_trialInBlock = []; state.lastSelfPaced_objectRow = [];
+    state.lastSelfPaced_startOri1 = []; state.lastSelfPaced_delayDuration = [];
+    state.lastSelfPaced_bigPolygonFinalHue = []; state.lastSelfPaced_smallPolygonHue = [];
+    state.currentYokedSchedule = []; state.yoked_sourceTrialInBlock = [];
+    state.yoked_sourceObjectRow = []; state.yoked_sourceOrientation = [];
+    state.yoked_sourceDelayDuration = []; state.yoked_sourceFinalHue = [];
+    state.yoked_sourceSmallPolygonHue = []; state.yoked_objectRow = [];
   } else {
-    // ── YOKED (COLOR-MATCHING) BLOCK ──
     state.conditionType = 'yoked';
-
-    const pairStart   = state.sourcePairN * OBJECTS_PER_PAIR;
-    const yokedStart  = pairStart + TRIALS_PER_BLOCK;
-    const yokedEnd    = pairStart + OBJECTS_PER_PAIR;
-    const yokedObjectRows = state.allObjectRows.slice(yokedStart, yokedEnd);
-
-    // Build source order: shuffle first half (0-9) and second half (10-19) separately
+    const pairStart  = state.sourcePairN * OBJECTS_PER_PAIR;
+    const yokedStart = pairStart + TRIALS_PER_BLOCK;
+    const yokedObjectRows = state.allObjectRows.slice(yokedStart, yokedStart + TRIALS_PER_BLOCK);
     const firstHalf  = shuffle([0,1,2,3,4,5,6,7,8,9]);
     const secondHalf = shuffle([10,11,12,13,14,15,16,17,18,19]);
     const sourceOrder = firstHalf.concat(secondHalf);
     state.currentYokedSchedule = sourceOrder;
-
-    // Reset yoked arrays
-    state.yoked_sourceTrialInBlock  = [];
-    state.yoked_sourceObjectRow     = [];
-    state.yoked_sourceOrientation   = [];
-    state.yoked_sourceDelayDuration = [];
-    state.yoked_sourceFinalHue      = [];
-    state.yoked_sourceSmallPolygonHue = [];
-    state.yoked_objectRow           = [];
-
-    // Build yoked schedule from preceding self-paced block data
+    state.yoked_sourceTrialInBlock = []; state.yoked_sourceObjectRow = [];
+    state.yoked_sourceOrientation = []; state.yoked_sourceDelayDuration = [];
+    state.yoked_sourceFinalHue = []; state.yoked_sourceSmallPolygonHue = [];
+    state.yoked_objectRow = [];
     for (let i = 0; i < TRIALS_PER_BLOCK; i++) {
       const srcIdx = sourceOrder[i];
       state.yoked_objectRow.push(yokedObjectRows[i]);
@@ -282,89 +275,55 @@ function applyBlockSettings(expBlock) {
       state.yoked_sourceFinalHue.push(state.lastSelfPaced_bigPolygonFinalHue[srcIdx]);
       state.yoked_sourceSmallPolygonHue.push(state.lastSelfPaced_smallPolygonHue[srcIdx]);
     }
-
     state.rowsInBlock = yokedObjectRows;
   }
 }
 
 /** ─────────────────────────────────────────────
- *  IMAGE PATH HELPER
- * ───────────────────────────────────────────── */
-function imagePath(row) {
-  // Images are named 1.png … 432.png (1-indexed)
-  return `GrayObjectStimuli/${row + 1}.png`;
-}
-
-/** ─────────────────────────────────────────────
- *  PHASE: INITIALISE EXPERIMENT (randomisation)
- * ───────────────────────────────────────────── */
-function initExperiment() {
-  state.allObjectRows = Array.from({length: N_TOTAL_OBJECTS}, (_, i) => i);
-  shuffle(state.allObjectRows);
-  state.smallPolygonHue = 0.0;
-}
-
-/** ─────────────────────────────────────────────
- *  PHASE: TRIAL SETUP
+ *  TRIAL / DELAY / RESPONSE / CONFIDENCE SETUP
  * ───────────────────────────────────────────── */
 function setupTrial(trialInBlock) {
   state.trialInBlock = trialInBlock;
   state.objectRow    = state.rowsInBlock[trialInBlock];
-
-  if (state.conditionType === 'self_paced') {
-    state.startOri1 = randInt(1, 359);
-  } else {
-    state.startOri1 = state.yoked_sourceOrientation[trialInBlock];
-  }
+  state.startOri1    = (state.conditionType === 'self_paced')
+    ? randInt(1, 359)
+    : state.yoked_sourceOrientation[trialInBlock];
 }
 
-/** ─────────────────────────────────────────────
- *  PHASE: DELAY SETUP
- * ───────────────────────────────────────────── */
 function setupDelay() {
-  state.delayDuration     = null;
-  state.bigPolygonFinalHue = null;
-
+  state.delayDuration = null; state.bigPolygonFinalHue = null;
   if (state.conditionType === 'self_paced') {
-    state.targetHue         = state.smallPolygonHue;
-    state.hueStart          = 0.0;
-    state.hue               = 0.0;
-    state.hueSpeed          = DEFAULT_HUE_SPEED;
-    state.hueDistance       = null;
-    state.yokedScheduledDelay = null;
+    state.targetHue = state.smallPolygonHue; state.hueStart = 0.0;
+    state.hue = 0.0; state.hueSpeed = DEFAULT_HUE_SPEED;
+    state.hueDistance = null; state.yokedScheduledDelay = null;
   } else {
     let ysd = state.yoked_sourceDelayDuration[state.trialInBlock];
-    if (ysd === null || ysd <= 0) ysd = 0.25;
+    if (!ysd || ysd <= 0) ysd = 0.25;
     state.yokedScheduledDelay = ysd;
-    state.targetHue    = state.yoked_sourceFinalHue[state.trialInBlock];
+    state.targetHue = state.yoked_sourceFinalHue[state.trialInBlock];
     state.smallPolygonHue = state.targetHue;
-    state.hueStart     = (state.targetHue + 0.5) % 1.0;
-    state.hue          = state.hueStart;
-    state.hueDistance  = ((state.targetHue - state.hueStart) % 1.0 + 1.0) % 1.0;
-    state.hueSpeed     = state.hueDistance / state.yokedScheduledDelay;
+    state.hueStart = (state.targetHue + 0.5) % 1.0;
+    state.hue = state.hueStart;
+    state.hueDistance = ((state.targetHue - state.hueStart) % 1.0 + 1.0) % 1.0;
+    state.hueSpeed = state.hueDistance / state.yokedScheduledDelay;
   }
 }
 
-/** Per-frame hue update (call with elapsed seconds since delay onset) */
 function updateDelayHue(elapsed) {
   if (state.conditionType === 'self_paced') {
     state.hue = (state.hueStart + state.hueSpeed * elapsed) % 1.0;
   } else {
     if (elapsed <= state.yokedScheduledDelay) {
-      const progress = elapsed / state.yokedScheduledDelay;
-      state.hue = (state.hueStart + progress * state.hueDistance) % 1.0;
+      state.hue = (state.hueStart + (elapsed / state.yokedScheduledDelay) * state.hueDistance) % 1.0;
     } else {
-      const timeAfterMatch = elapsed - state.yokedScheduledDelay;
-      state.hue = (state.targetHue + state.hueSpeed * timeAfterMatch) % 1.0;
+      state.hue = (state.targetHue + state.hueSpeed * (elapsed - state.yokedScheduledDelay)) % 1.0;
     }
   }
 }
 
-/** Called when SPACE is pressed during delay */
 function endDelay(elapsed) {
-  state.delayDuration      = elapsed;
+  state.delayDuration = elapsed;
   state.bigPolygonFinalHue = state.hue;
-
   if (state.conditionType === 'self_paced') {
     state.lastSelfPaced_trialInBlock.push(state.trialInBlock);
     state.lastSelfPaced_objectRow.push(state.objectRow);
@@ -372,77 +331,50 @@ function endDelay(elapsed) {
     state.lastSelfPaced_delayDuration.push(state.delayDuration);
     state.lastSelfPaced_bigPolygonFinalHue.push(state.bigPolygonFinalHue);
     state.lastSelfPaced_smallPolygonHue.push(state.smallPolygonHue);
-    // Carry outer hue into next self-paced trial's inner circle
     state.smallPolygonHue = state.bigPolygonFinalHue;
   }
 }
 
-/** ─────────────────────────────────────────────
- *  PHASE: RESPONSE SETUP
- * ───────────────────────────────────────────── */
 function setupResponse() {
-  // Start position: random offset from 0 (never equal to startOri1)
-  const offsets = [11.25, 33.75, 56.25, 78.75, 101.25, 123.75,
-                   146.25, 168.75, 191.25, 213.75, 236.25, 258.75,
-                   281.25, 303.75, 326.25, 348.75];
+  const offsets = [11.25,33.75,56.25,78.75,101.25,123.75,146.25,168.75,
+                   191.25,213.75,236.25,258.75,281.25,303.75,326.25,348.75];
   shuffle(offsets);
   state.adjustmentStartOri = offsets[0];
-  state.thisOriT1          = offsets[0];
-  state.rotKeySpeed        = ROT_INITIAL_SPEED;
+  state.thisOriT1 = offsets[0];
+  state.rotKeySpeed = ROT_INITIAL_SPEED;
 }
 
-/** ─────────────────────────────────────────────
- *  PHASE: CONFIDENCE SETUP
- * ───────────────────────────────────────────── */
 function setupConfidence() {
   state.confidenceOri1 = state.responseOri;
   state.confidenceOri2 = state.responseOri;
-  state.confKeySpeed   = 1.0;
+  state.confKeySpeed = 1.0;
 }
 
 /** ─────────────────────────────────────────────
- *  CANVAS RENDERING HELPERS
+ *  CANVAS RENDERING
  * ───────────────────────────────────────────── */
-
-/** Draw the delay screen: big polygon (outer), small polygon (inner), both circles */
 function renderDelay(canvas, bigHue, smallHue) {
-  const ctx   = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
-  const cx = W / 2, cy = H / 2;
-  ctx.clearRect(0, 0, W, H);
-  ctx.fillStyle = '#808080';
-  ctx.fillRect(0, 0, W, H);
-
-  // Big circle (outer)
-  ctx.beginPath();
-  ctx.arc(cx, cy, 120, 0, 2 * Math.PI);
-  ctx.fillStyle = hsvToRgb(bigHue, 1.0, 1.0);
-  ctx.fill();
-
-  // Small circle (inner)
-  ctx.beginPath();
-  ctx.arc(cx, cy, 60, 0, 2 * Math.PI);
-  ctx.fillStyle = hsvToRgb(smallHue, 1.0, 1.0);
-  ctx.fill();
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height, cx = W/2, cy = H/2;
+  ctx.fillStyle = '#808080'; ctx.fillRect(0, 0, W, H);
+  ctx.beginPath(); ctx.arc(cx, cy, 120, 0, 2*Math.PI);
+  ctx.fillStyle = hsvToRgb(bigHue, 1.0, 1.0); ctx.fill();
+  ctx.beginPath(); ctx.arc(cx, cy, 60, 0, 2*Math.PI);
+  ctx.fillStyle = hsvToRgb(smallHue, 1.0, 1.0); ctx.fill();
 }
 
-/** Draw background circle for response/confidence screens */
 function renderBackground(ctx, W, H) {
-  ctx.fillStyle = '#808080';
-  ctx.fillRect(0, 0, W, H);
-  ctx.beginPath();
-  ctx.arc(W/2, H/2, Math.min(W, H) * 0.42, 0, 2*Math.PI);
-  ctx.fillStyle = '#b0b0b0';
-  ctx.fill();
+  ctx.fillStyle = '#808080'; ctx.fillRect(0, 0, W, H);
+  ctx.beginPath(); ctx.arc(W/2, H/2, Math.min(W,H)*0.42, 0, 2*Math.PI);
+  ctx.fillStyle = '#b0b0b0'; ctx.fill();
 }
 
-/** Draw a rotated image centred on canvas */
 function renderRotatedImage(canvas, img, angleDeg) {
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height;
+  const size = Math.min(W, H) * 0.55;
   ctx.clearRect(0, 0, W, H);
   renderBackground(ctx, W, H);
-  const size = Math.min(W, H) * 0.55;
   ctx.save();
   ctx.translate(W/2, H/2);
   ctx.rotate(angleDeg * Math.PI / 180);
@@ -450,60 +382,46 @@ function renderRotatedImage(canvas, img, angleDeg) {
   ctx.restore();
 }
 
-/** Draw confidence screen: image at responseOri + two semi-transparent copies at wedge edges */
 function renderConfidence(canvas, img, responseOri, ori1, ori2) {
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height;
+  const size = Math.min(W, H) * 0.55;
+  const r = Math.min(W, H) * 0.42;
   ctx.clearRect(0, 0, W, H);
   renderBackground(ctx, W, H);
-  const size = Math.min(W, H) * 0.55;
-  const r    = Math.min(W, H) * 0.42;
-
-  // Draw wedge arc
   drawWedge(ctx, W/2, H/2, r, ori1, ori2, '#ffffff', 0.35);
-
-  // Centre image at response orientation
-  ctx.save();
-  ctx.translate(W/2, H/2);
-  ctx.rotate(responseOri * Math.PI / 180);
-  ctx.drawImage(img, -size/2, -size/2, size, size);
-  ctx.restore();
-
-  // Wedge edge 1 (semi-transparent)
-  ctx.save();
-  ctx.globalAlpha = 0.45;
-  ctx.translate(W/2, H/2);
+  ctx.save(); ctx.translate(W/2, H/2); ctx.rotate(responseOri * Math.PI / 180);
+  ctx.drawImage(img, -size/2, -size/2, size, size); ctx.restore();
+  ctx.save(); ctx.globalAlpha = 0.45; ctx.translate(W/2, H/2);
   ctx.rotate(ori1 * Math.PI / 180);
-  ctx.drawImage(img, -size/2, -size/2, size, size);
-  ctx.restore();
-
-  // Wedge edge 2 (semi-transparent)
-  ctx.save();
-  ctx.globalAlpha = 0.45;
-  ctx.translate(W/2, H/2);
+  ctx.drawImage(img, -size/2, -size/2, size, size); ctx.restore();
+  ctx.save(); ctx.globalAlpha = 0.45; ctx.translate(W/2, H/2);
   ctx.rotate(ori2 * Math.PI / 180);
-  ctx.drawImage(img, -size/2, -size/2, size, size);
-  ctx.restore();
+  ctx.drawImage(img, -size/2, -size/2, size, size); ctx.restore();
 }
 
 /** ─────────────────────────────────────────────
- *  jsPsych TRIAL DEFINITIONS
- *  (assembled in buildTimeline() below)
+ *  HELPER: get canvas from DOM
  * ───────────────────────────────────────────── */
-
-/** Generic text screen with SPACE to advance */
-function makeTextTrial(textFn) {
-    return {
-        type: jsPsychHtmlButtonResponse,
-        stimulus: () => {
-            const txt = typeof textFn === 'function' ? textFn() : textFn;
-            return `<div class="instructions">${txt.replace(/\n/g, '<br>')}</div>`;
-        },
-        choices: ['Continue'],
-    };
+function getCanvas() {
+  return document.querySelector('#jspsych-canvas-keyboard-response-stimulus canvas')
+      || document.querySelector('canvas');
 }
 
-/** Fixation cross */
+/** ─────────────────────────────────────────────
+ *  TRIAL DEFINITIONS
+ * ───────────────────────────────────────────── */
+function makeTextTrial(textFn) {
+  return {
+    type: jsPsychHtmlButtonResponse,
+    stimulus: () => {
+      const txt = typeof textFn === 'function' ? textFn() : textFn;
+      return `<div class="instructions">${txt.replace(/\n/g, '<br>')}</div>`;
+    },
+    choices: ['Continue'],
+  };
+}
+
 const fixationTrial = {
   type: jsPsychHtmlKeyboardResponse,
   stimulus: '<div class="fixation">+</div>',
@@ -511,36 +429,15 @@ const fixationTrial = {
   trial_duration: FIXATION_DURATION_MS,
 };
 
-/** Image presentation */
-function makeImageTrial(imageSrc) {
-  return {
-    type: jsPsychHtmlKeyboardResponse,
-    stimulus: () => {
-      const src = typeof imageSrc === 'function' ? imageSrc() : imageSrc;
-      return `<div class="trial-screen">
-        <div class="stimulus-bg"></div>
-        <img class="stimulus-img" src="${src}"
-             style="transform: rotate(${state.startOri1}deg)">
-      </div>`;
-    },
-    choices: 'NO_KEYS',
-    trial_duration: IMAGE_DURATION_MS,
-  };
-}
-
-/** Delay phase – canvas-based, real-time hue cycling */
 function makeDelayTrial() {
   return {
     type: jsPsychCanvasKeyboardResponse,
     canvas_size: [600, 600],
-    stimulus: (canvas) => {
-      // This runs once; animation is in on_load
-      renderDelay(canvas, state.hue, state.smallPolygonHue);
-    },
+    stimulus: (canvas) => { renderDelay(canvas, state.hue, state.smallPolygonHue); },
     choices: [' '],
     response_ends_trial: true,
     on_load: () => {
-      const canvas = document.querySelector('#jspsych-canvas-keyboard-response-stimulus canvas');
+      const canvas = getCanvas();
       if (!canvas) return;
       state.delayStartTime = performance.now();
       let animId;
@@ -551,12 +448,10 @@ function makeDelayTrial() {
         animId = requestAnimationFrame(frame);
       }
       animId = requestAnimationFrame(frame);
-      // Store cancel function for cleanup
       canvas._cancelAnim = () => cancelAnimationFrame(animId);
     },
     on_finish: (data) => {
-      // Cancel animation
-      const canvas = document.querySelector('#jspsych-canvas-keyboard-response-stimulus canvas');
+      const canvas = getCanvas();
       if (canvas && canvas._cancelAnim) canvas._cancelAnim();
       const elapsed = data.rt ? data.rt / 1000 : (performance.now() - state.delayStartTime) / 1000;
       endDelay(elapsed);
@@ -564,82 +459,73 @@ function makeDelayTrial() {
   };
 }
 
-/** Response phase – hold left/right arrow buttons to rotate image */
 function makeResponseTrial() {
   return {
     type: jsPsychCanvasKeyboardResponse,
     canvas_size: [600, 600],
     stimulus: (canvas) => {
-      // Initial render happens in on_load
       const ctx = canvas.getContext('2d');
-      const W = canvas.width, H = canvas.height;
-      ctx.fillStyle = '#808080';
-      ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#808080'; ctx.fillRect(0, 0, canvas.width, canvas.height);
     },
     choices: [' '],
     response_ends_trial: true,
     on_load: () => {
-      const canvas = document.querySelector('#jspsych-canvas-keyboard-response-stimulus canvas');
+      const canvas = getCanvas();
       if (!canvas) return;
-
       const img = new Image();
       img.src = imagePath(state.objectRow);
-
-      let animId;
-      let leftHeld = false, rightHeld = false;
+      let animId, leftHeld = false, rightHeld = false;
       state.rotKeySpeed = ROT_INITIAL_SPEED;
 
       function frame() {
         if (leftHeld) {
           state.rotKeySpeed = Math.min(state.rotKeySpeed + ROT_INCREASE_PER_FRAME, ROT_MAX_SPEED);
-          state.thisOriT1  -= state.rotKeySpeed;
+          state.thisOriT1 -= state.rotKeySpeed;
         } else if (rightHeld) {
           state.rotKeySpeed = Math.min(state.rotKeySpeed + ROT_INCREASE_PER_FRAME, ROT_MAX_SPEED);
-          state.thisOriT1  += state.rotKeySpeed;
+          state.thisOriT1 += state.rotKeySpeed;
         } else {
           state.rotKeySpeed = ROT_INITIAL_SPEED;
         }
-        if (img.complete) renderRotatedImage(canvas, img, state.thisOriT1);
+        if (img.complete && img.naturalWidth > 0) renderRotatedImage(canvas, img, state.thisOriT1);
         animId = requestAnimationFrame(frame);
       }
       animId = requestAnimationFrame(frame);
 
-      // Mouse / touch on arrow buttons (rendered below canvas by jsPsych)
       function onDown(e) {
         const btn = e.target.closest('[data-dir]');
         if (!btn) return;
+        e.preventDefault();
         if (btn.dataset.dir === 'left')  { leftHeld = true;  rightHeld = false; }
-        if (btn.dataset.dir === 'right') { rightHeld = true; leftHeld = false;  }
+        if (btn.dataset.dir === 'right') { rightHeld = true; leftHeld = false; }
       }
       function onUp() { leftHeld = false; rightHeld = false; state.rotKeySpeed = ROT_INITIAL_SPEED; }
 
       document.addEventListener('mousedown', onDown);
-      document.addEventListener('mouseup',   onUp);
-      document.addEventListener('touchstart', onDown, {passive:true});
-      document.addEventListener('touchend',   onUp);
+      document.addEventListener('mouseup', onUp);
+      document.addEventListener('touchstart', onDown, {passive: false});
+      document.addEventListener('touchend', onUp);
 
       canvas._cancelResp = () => {
         cancelAnimationFrame(animId);
         document.removeEventListener('mousedown', onDown);
-        document.removeEventListener('mouseup',   onUp);
+        document.removeEventListener('mouseup', onUp);
         document.removeEventListener('touchstart', onDown);
-        document.removeEventListener('touchend',   onUp);
+        document.removeEventListener('touchend', onUp);
       };
 
-      // Insert arrow buttons below the canvas
-      const container = canvas.closest('.jspsych-canvas-keyboard-response-stimulus') || canvas.parentElement;
+      const container = canvas.parentElement;
       const btnDiv = document.createElement('div');
       btnDiv.className = 'arrow-buttons';
       btnDiv.innerHTML = `
         <button class="arrow-btn" data-dir="left">&#9664; Left</button>
-        <span class="arrow-hint">Hold to rotate · SPACE to confirm</span>
-        <button class="arrow-btn" data-dir="right">Right &#9654;</button>
-      `;
+        <span class="arrow-hint">Hold to rotate &middot; SPACE to confirm</span>
+        <button class="arrow-btn" data-dir="right">Right &#9654;</button>`;
       container.appendChild(btnDiv);
       canvas._btnDiv = btnDiv;
     },
-    on_finish: (data) => {
-      const canvas = document.querySelector('#jspsych-canvas-keyboard-response-stimulus canvas');
+    on_finish: () => {
+      const canvas = getCanvas();
       if (canvas) {
         if (canvas._cancelResp) canvas._cancelResp();
         if (canvas._btnDiv) canvas._btnDiv.remove();
@@ -649,27 +535,23 @@ function makeResponseTrial() {
   };
 }
 
-/** Confidence phase – hold narrower/wider buttons to adjust wedge */
 function makeConfidenceTrial() {
   return {
     type: jsPsychCanvasKeyboardResponse,
     canvas_size: [600, 600],
     stimulus: (canvas) => {
       const ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#808080';
-      ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#808080'; ctx.fillRect(0, 0, canvas.width, canvas.height);
     },
     choices: [' '],
     response_ends_trial: true,
     on_load: () => {
-      const canvas = document.querySelector('#jspsych-canvas-keyboard-response-stimulus canvas');
+      const canvas = getCanvas();
       if (!canvas) return;
-
+      const W = canvas.width, H = canvas.height;
       const img = new Image();
       img.src = imagePath(state.objectRow);
-
-      let animId;
-      let widerHeld = false, narrowerHeld = false;
+      let animId, widerHeld = false, narrowerHeld = false;
 
       function frame() {
         if (widerHeld) {
@@ -685,7 +567,8 @@ function makeConfidenceTrial() {
         } else {
           state.confKeySpeed = 1.0;
         }
-        if (img.complete) renderConfidence(canvas, img, state.responseOri, state.confidenceOri1, state.confidenceOri2);
+        if (img.complete && img.naturalWidth > 0)
+          renderConfidence(canvas, img, state.responseOri, state.confidenceOri1, state.confidenceOri2);
         animId = requestAnimationFrame(frame);
       }
       animId = requestAnimationFrame(frame);
@@ -693,38 +576,37 @@ function makeConfidenceTrial() {
       function onDown(e) {
         const btn = e.target.closest('[data-conf]');
         if (!btn) return;
+        e.preventDefault();
         if (btn.dataset.conf === 'wider')    { widerHeld = true;   narrowerHeld = false; }
-        if (btn.dataset.conf === 'narrower') { narrowerHeld = true; widerHeld = false;   }
+        if (btn.dataset.conf === 'narrower') { narrowerHeld = true; widerHeld = false; }
       }
       function onUp() { widerHeld = false; narrowerHeld = false; state.confKeySpeed = 1.0; }
 
       document.addEventListener('mousedown', onDown);
-      document.addEventListener('mouseup',   onUp);
-      document.addEventListener('touchstart', onDown, {passive:true});
-      document.addEventListener('touchend',   onUp);
+      document.addEventListener('mouseup', onUp);
+      document.addEventListener('touchstart', onDown, {passive: false});
+      document.addEventListener('touchend', onUp);
 
       canvas._cancelConf = () => {
         cancelAnimationFrame(animId);
         document.removeEventListener('mousedown', onDown);
-        document.removeEventListener('mouseup',   onUp);
+        document.removeEventListener('mouseup', onUp);
         document.removeEventListener('touchstart', onDown);
-        document.removeEventListener('touchend',   onUp);
+        document.removeEventListener('touchend', onUp);
       };
 
-      // Insert confidence buttons
-      const container = canvas.closest('.jspsych-canvas-keyboard-response-stimulus') || canvas.parentElement;
+      const container = canvas.parentElement;
       const btnDiv = document.createElement('div');
       btnDiv.className = 'arrow-buttons';
       btnDiv.innerHTML = `
         <button class="arrow-btn" data-conf="narrower">&#9660; Narrower</button>
-        <span class="arrow-hint">Hold to adjust · SPACE to confirm</span>
-        <button class="arrow-btn" data-conf="wider">Wider &#9650;</button>
-      `;
+        <span class="arrow-hint">Hold to adjust &middot; SPACE to confirm</span>
+        <button class="arrow-btn" data-conf="wider">Wider &#9650;</button>`;
       container.appendChild(btnDiv);
       canvas._btnDiv = btnDiv;
     },
     on_finish: () => {
-      const canvas = document.querySelector('#jspsych-canvas-keyboard-response-stimulus canvas');
+      const canvas = getCanvas();
       if (canvas) {
         if (canvas._cancelConf) canvas._cancelConf();
         if (canvas._btnDiv) canvas._btnDiv.remove();
@@ -734,53 +616,37 @@ function makeConfidenceTrial() {
   };
 }
 
-/** Feedback screen */
 function makeFeedbackTrial() {
   return {
-    type: jsPsychHtmlKeyboardResponse,
+    type: jsPsychHtmlButtonResponse,
     stimulus: () => {
       const e = angularDistance(state.responseOri, state.startOri1);
-      const rew = computeReward(
-        e,
-        state.delayDuration,
-        state.yokedScheduledDelay,
-        state.conditionType,
-        state.confidenceWedgeWidth
-      );
+      const rew = computeReward(e, state.delayDuration, state.yokedScheduledDelay,
+                                state.conditionType, state.confidenceWedgeWidth);
       state.winningPoints = rew.total;
       state.blockPoints  += rew.total;
 
       let msg;
-      if (rew.d < REWARD.d_min) {
+      if (rew.d < REWARD.d_min)
         msg = `${Math.round(e)} degrees difference.<br>No points: response was too early.`;
-      } else if (e < 5) {
+      else if (e < 5)
         msg = `Great job!<br>${Math.round(e)} degrees difference.<br>You win ${Math.round(rew.total)} points`;
-      } else {
+      else
         msg = `${Math.round(e)} degrees difference.<br>You win ${Math.round(rew.total)} points`;
-      }
 
-      // Record trial
       recordTrial({
-        conditionType       : state.conditionType,
-        expBlock            : state.expBlock,
-        sourcePairN         : state.sourcePairN,
-        trialInBlock        : state.trialInBlock,
-        objectRow           : state.objectRow,
-        startOri1           : state.startOri1,
-        delayDuration       : state.delayDuration,
-        yokedScheduledDelay : state.yokedScheduledDelay,
-        bigPolygonFinalHue  : state.bigPolygonFinalHue,
-        responseOri         : state.responseOri,
-        angle_diff          : e,
+        conditionType: state.conditionType, expBlock: state.expBlock,
+        sourcePairN: state.sourcePairN, trialInBlock: state.trialInBlock,
+        objectRow: state.objectRow, stimulusName: STIMULI[state.objectRow],
+        startOri1: state.startOri1, delayDuration: state.delayDuration,
+        yokedScheduledDelay: state.yokedScheduledDelay,
+        bigPolygonFinalHue: state.bigPolygonFinalHue,
+        responseOri: state.responseOri, angle_diff: e,
         confidenceWedgeWidth: state.confidenceWedgeWidth,
-        d_credit_raw        : rew.d_credit_raw,
-        d_clamped           : rew.d,
-        accuracy_score      : rew.A,
-        delay_score         : rew.D,
-        R_base              : rew.R_base,
-        R_conf              : rew.R_conf,
-        winningPoints       : rew.total,
-        blockPoints_so_far  : state.blockPoints,
+        d_credit_raw: rew.d_credit_raw, d_clamped: rew.d,
+        accuracy_score: rew.A, delay_score: rew.D,
+        R_base: rew.R_base, R_conf: rew.R_conf,
+        winningPoints: rew.total, blockPoints_so_far: state.blockPoints,
       });
 
       return `<div class="feedback-screen">
@@ -797,25 +663,20 @@ function makeFeedbackTrial() {
           </div>
         </div>
         <p class="feedback-msg">${msg}</p>
-        <p class="feedback-hint">Press SPACE to continue</p>
       </div>`;
     },
-    choices: [' '],
+    choices: ['Continue'],
   };
 }
 
-/** Block end screen */
 function makeBlockEndTrial() {
   return {
-    type: jsPsychHtmlKeyboardResponse,
-    stimulus: () => {
-      return `<div class="instructions">
-        You earned <strong>${Math.round(state.blockPoints)}</strong> points in this block.<br><br>
-        Take a brief pause.<br>
-        Press SPACE to continue.
-      </div>`;
-    },
-    choices: [' '],
+    type: jsPsychHtmlButtonResponse,
+    stimulus: () => `<div class="instructions">
+      You earned <strong>${Math.round(state.blockPoints)}</strong> points in this block.<br><br>
+      Take a brief pause.<br>Press Continue when ready.
+    </div>`,
+    choices: ['Continue'],
   };
 }
 
@@ -823,23 +684,16 @@ function makeBlockEndTrial() {
  *  TIMELINE BUILDER
  * ───────────────────────────────────────────── */
 function buildTimeline(jsPsych) {
+  const timeline = [];
 
-    const timeline = [];
-    // Click to start - required for keyboard input in browsers
-    timeline.push({
-        type: jsPsychHtmlKeyboardResponse,
-        stimulus: '<div class="instructions">Click anywhere on this page to begin, then press SPACE to continue.</div>',
-        choices: 'ALL_KEYS',
-        on_load: () => {
-            document.addEventListener('click', () => {
-                jsPsych.finishTrial();
-            }, { once: true });
-        },
-    });
+  // Click-to-start
+  timeline.push({
+    type: jsPsychHtmlButtonResponse,
+    stimulus: '<div class="instructions">Click <strong>Continue</strong> to begin.</div>',
+    choices: ['Continue'],
+  });
 
-
-
-  // ── Instructions ──
+  // Instructions
   timeline.push(makeTextTrial(
     'Welcome to the Object Orientation Experiment!\n\n' +
     'In this experiment, you will remember the orientation of different objects.\n\n' +
@@ -851,8 +705,7 @@ function buildTimeline(jsPsych) {
     'Press SPACE to confirm your answer.\n\n' +
     'You will then show how close you think you were by opening a wedge around your answer. ' +
     'Try to make the wedge wide enough to include the correct orientation, but not wider than necessary. ' +
-    'Too-wide wedges will earn little or no extra points.\n\n' +
-    'Press SPACE to continue.'
+    'Too-wide wedges will earn little or no extra points.'
   ));
 
   timeline.push(makeTextTrial(
@@ -869,100 +722,61 @@ function buildTimeline(jsPsych) {
     'In both block types, you will then report the object\'s original orientation ' +
     'and show how close you think you were.\n\n' +
     'Too-early responses will not earn points. ' +
-    'You will see how many points you earned after each trial and at the end of each block.\n\n' +
-    'Press SPACE to begin.'
+    'You will see how many points you earned after each trial and at the end of each block.'
   ));
 
-  // ── 10 Blocks ──
+  // 10 blocks
   for (let blockN = 0; blockN < N_TOTAL_BLOCKS; blockN++) {
-
-    // Block setup (runs inline before block cue)
-    timeline.push({
-      type: jsPsychCallFunction,
-      func: () => applyBlockSettings(blockN),
-    });
+    timeline.push({ type: jsPsychCallFunction, func: () => applyBlockSettings(blockN) });
 
     // Block cue
     timeline.push({
-      type: jsPsychHtmlKeyboardResponse,
-      stimulus: () => {
-        if (state.conditionType === 'self_paced') {
-          return `<div class="instructions">
-            <strong>SELF-PACED BLOCK</strong><br><br>
+      type: jsPsychHtmlButtonResponse,
+      stimulus: () => state.conditionType === 'self_paced'
+        ? `<div class="instructions"><strong>SELF-PACED BLOCK</strong><br><br>
             Remember the orientation of each object.<br><br>
             Colored circles will appear during the delay, but you do not need to use their colors in this block.<br><br>
             Press SPACE when you want to report the remembered orientation.<br>
-            By waiting longer you will earn more points, but only if you still remember the orientation well.<br><br>
-            Press SPACE to start this block.
-          </div>`;
-        } else {
-          return `<div class="instructions">
-            <strong>COLOR-MATCHING BLOCK</strong><br><br>
+            By waiting longer you will earn more points, but only if you still remember the orientation well.
+          </div>`
+        : `<div class="instructions"><strong>COLOR-MATCHING BLOCK</strong><br><br>
             Remember the orientation of each object.<br><br>
-            During the delay, your task is to use the colored circles to decide when to respond.<br>
-            Press SPACE when you think the changing outer circle matches the inner circle.<br><br>
-            Press SPACE to start this block.
-          </div>`;
-        }
-      },
-      choices: [' '],
+            During the delay, press SPACE when you think the changing outer circle matches the inner circle.
+          </div>`,
+      choices: ['Start block'],
     });
 
-    // ── 20 Trials per block ──
+    // 20 trials
     for (let t = 0; t < TRIALS_PER_BLOCK; t++) {
-      const trialIndex = t;  // capture
-
-      // Trial setup
-      timeline.push({
-        type: jsPsychCallFunction,
-        func: () => {
-          setupTrial(trialIndex);
-          setupDelay();
-          setupResponse();
-          setupConfidence();
-        },
-      });
-
-      // Fixation
+      const trialIndex = t;
+      timeline.push({ type: jsPsychCallFunction, func: () => {
+        setupTrial(trialIndex); setupDelay(); setupResponse(); setupConfidence();
+      }});
       timeline.push(fixationTrial);
-
-      // Image
       timeline.push({
         type: jsPsychHtmlKeyboardResponse,
-        stimulus: () => {
-          return `<div class="trial-screen">
-            <div class="stimulus-bg"></div>
-            <img class="stimulus-img" id="trial-img"
-                 src="${imagePath(state.objectRow)}"
-                 style="transform: rotate(${state.startOri1}deg)">
-          </div>`;
-        },
+        stimulus: () => `<div class="trial-screen">
+          <div class="stimulus-bg"></div>
+          <img class="stimulus-img" src="${imagePath(state.objectRow)}"
+               style="transform: rotate(${state.startOri1}deg)">
+        </div>`,
         choices: 'NO_KEYS',
         trial_duration: IMAGE_DURATION_MS,
       });
-
-      // Delay
       timeline.push(makeDelayTrial());
-
-      // Response
       timeline.push(makeResponseTrial());
-
-      // Confidence
       timeline.push(makeConfidenceTrial());
-
-      // Feedback
       timeline.push(makeFeedbackTrial());
     }
 
-    // Block end
     timeline.push(makeBlockEndTrial());
   }
 
-  // End screen
+  // End
   timeline.push({
-    type: jsPsychHtmlKeyboardResponse,
+    type: jsPsychHtmlButtonResponse,
     stimulus: '<div class="instructions">Thank you for participating!<br><br>Your data is being saved…</div>',
-    choices: 'NO_KEYS',
+    choices: [],
     trial_duration: 2000,
     on_finish: () => saveData(jsPsych),
   });
@@ -971,57 +785,36 @@ function buildTimeline(jsPsych) {
 }
 
 /** ─────────────────────────────────────────────
- *  DATA SAVING  (Experiment Factory: POST to /save → redirect /next)
+ *  DATA SAVING
  * ───────────────────────────────────────────── */
 function saveData(jsPsych) {
-  const payload = {
-    data: JSON.stringify({
-      jsPsychData : jsPsych.data.get().values(),
-      trialData   : trialData,
-      allObjectRows: state.allObjectRows,
-    }),
-  };
-
-  fetch('/save', {
-    method : 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body   : JSON.stringify(payload),
-  })
-  .then(r => {
-    if (r.ok) {
-      window.location.href = '/next';
-    } else {
-      // Fallback: offer CSV download if server not available (local testing)
-      downloadFallback();
-    }
-  })
-  .catch(() => downloadFallback());
+  const payload = { data: JSON.stringify({ trialData, allObjectRows: state.allObjectRows }) };
+  fetch('/save', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) })
+    .then(r => { if (r.ok) window.location.href = '/next'; else downloadFallback(); })
+    .catch(() => downloadFallback());
 }
 
 function downloadFallback() {
-  const json  = JSON.stringify(trialData, null, 2);
-  const blob  = new Blob([json], {type: 'application/json'});
-  const a     = document.createElement('a');
-  a.href      = URL.createObjectURL(blob);
-  a.download  = `selfpacedwm_${Date.now()}.json`;
-  a.click();
-  document.body.innerHTML =
-    '<div class="instructions">Data saved locally.<br>You may close this window.</div>';
+  const blob = new Blob([JSON.stringify(trialData, null, 2)], {type: 'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = `selfpacedwm_${Date.now()}.json`; a.click();
+  document.body.innerHTML = '<div class="instructions">Data saved locally. You may close this window.</div>';
 }
 
 /** ─────────────────────────────────────────────
- *  ENTRY POINT  (called from index.html)
+ *  ENTRY POINT
  * ───────────────────────────────────────────── */
+function initExperiment() {
+  state.allObjectRows = Array.from({length: N_TOTAL_OBJECTS}, (_, i) => i);
+  shuffle(state.allObjectRows);
+  state.smallPolygonHue = 0.0;
+}
+
 window.runExperiment = function() {
   initExperiment();
-
-    const jsPsych = initJsPsych({
-        display_element: 'jspsych-target',
-        on_trial_start: () => {
-            document.getElementById('jspsych-target').focus();
-        },
-        on_finish: () => { },
-    });
-
+  const jsPsych = initJsPsych({
+    display_element: 'jspsych-target',
+    on_finish: () => {},
+  });
   jsPsych.run(buildTimeline(jsPsych));
 };
