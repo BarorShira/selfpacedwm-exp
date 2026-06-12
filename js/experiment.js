@@ -553,6 +553,7 @@ function makeResponseTrial() {
         if (canvas._btnDiv) canvas._btnDiv.remove();
       }
       state.responseOri = state.thisOriT1;
+      setupConfidence();  // must run AFTER responseOri is set
     },
   };
 }
@@ -772,7 +773,7 @@ function buildTimeline(jsPsych) {
     for (let t = 0; t < TRIALS_PER_BLOCK; t++) {
       const trialIndex = t;
       timeline.push({ type: jsPsychCallFunction, func: () => {
-        setupTrial(trialIndex); setupDelay(); setupResponse(); setupConfidence();
+        setupTrial(trialIndex); setupDelay(); setupResponse();
       }});
       timeline.push(fixationTrial);
       // Image presentation — use canvas so circle is pixel-identical to delay/response screens

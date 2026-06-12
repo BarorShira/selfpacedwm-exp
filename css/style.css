@@ -36,9 +36,9 @@ body {
 
 /* ─── Instructions / text screens ──────────────────── */
 .instructions {
-  max-width: 660px;
+  max-width: 900px;
   margin: 0 auto;
-  padding: 36px 34px;
+  padding: 30px 40px;
   background: rgba(0,0,0,0.25);
   border-radius: 8px;
   line-height: 1.75;
