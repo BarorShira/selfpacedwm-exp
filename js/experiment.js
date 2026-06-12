@@ -492,16 +492,15 @@ function renderConfidence(canvas, img, responseOri, ori1, ori2) {
  * ───────────────────────────────────────────── */
 
 /** Generic text screen with SPACE to advance */
-function makeTextTrial(textFn, choices=['']) {
-  return {
-    type: jsPsychHtmlKeyboardResponse,
-    stimulus: () => {
-      const txt = typeof textFn === 'function' ? textFn() : textFn;
-      return `<div class="instructions">${txt.replace(/\n/g, '<br>')}</div>`;
-    },
-    choices,
-    on_finish: () => {},
-  };
+function makeTextTrial(textFn) {
+    return {
+        type: jsPsychHtmlButtonResponse,
+        stimulus: () => {
+            const txt = typeof textFn === 'function' ? textFn() : textFn;
+            return `<div class="instructions">${txt.replace(/\n/g, '<br>')}</div>`;
+        },
+        choices: ['Continue'],
+    };
 }
 
 /** Fixation cross */
