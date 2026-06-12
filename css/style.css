@@ -1,0 +1,179 @@
+/* ─── Global reset ─────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #808080;
+  color: #f0f0f0;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+#jspsych-target {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* ─── jsPsych overrides ─────────────────────────────── */
+.jspsych-display-element {
+  background: #808080;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.jspsych-content {
+  background: transparent;
+  text-align: center;
+}
+
+/* ─── Instructions / text screens ──────────────────── */
+.instructions {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 40px 30px;
+  background: rgba(0,0,0,0.25);
+  border-radius: 8px;
+  line-height: 1.7;
+  text-align: left;
+  white-space: pre-wrap;
+}
+
+.instructions strong {
+  font-size: 1.1em;
+  letter-spacing: 0.03em;
+}
+
+/* ─── Fixation cross ────────────────────────────────── */
+.fixation {
+  font-size: 64px;
+  font-weight: 300;
+  color: #f0f0f0;
+  text-align: center;
+  line-height: 1;
+}
+
+/* ─── Trial / stimulus screen ───────────────────────── */
+.trial-screen {
+  position: relative;
+  width: 600px;
+  height: 600px;
+  margin: 0 auto;
+  background: #808080;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stimulus-bg {
+  position: absolute;
+  width: 504px;
+  height: 504px;
+  border-radius: 50%;
+  background: #b0b0b0;
+}
+
+.stimulus-img {
+  position: relative;
+  z-index: 2;
+  width: 330px;
+  height: 330px;
+  object-fit: contain;
+}
+
+/* ─── Arrow rotation buttons ─────────────────────────── */
+.arrow-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 16px;
+}
+
+.arrow-btn {
+  background: rgba(255,255,255,0.15);
+  border: 2px solid rgba(255,255,255,0.5);
+  color: #f0f0f0;
+  font-size: 20px;
+  padding: 14px 28px;
+  border-radius: 6px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: background 0.1s;
+}
+
+.arrow-btn:hover,
+.arrow-btn:active {
+  background: rgba(255,255,255,0.35);
+}
+
+.arrow-hint {
+  font-size: 14px;
+  color: rgba(255,255,255,0.65);
+  text-align: center;
+}
+
+/* ─── Feedback screen ───────────────────────────────── */
+.feedback-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.feedback-images {
+  display: flex;
+  gap: 60px;
+  align-items: flex-end;
+}
+
+.feedback-images > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.label {
+  font-size: 15px;
+  color: rgba(255,255,255,0.75);
+}
+
+.feedback-img {
+  width: 180px;
+  height: 180px;
+  object-fit: contain;
+  background: #b0b0b0;
+  border-radius: 50%;
+  padding: 20px;
+}
+
+.feedback-msg {
+  font-size: 22px;
+  font-weight: 500;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.feedback-hint {
+  font-size: 15px;
+  color: rgba(255,255,255,0.6);
+}
+
+/* ─── Canvas centering ──────────────────────────────── */
+#jspsych-canvas-keyboard-response-stimulus {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#jspsych-canvas-keyboard-response-stimulus canvas {
+  display: block;
+}

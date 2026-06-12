@@ -1,0 +1,11 @@
+{
+  "name": "Self-Paced Working Memory",
+  "exp_id": "selfpacedwm-exp",
+  "description": "A self-paced working memory experiment in which participants remember the orientation of objects across a variable retention delay, with self-paced and yoked (color-matching) block conditions.",
+  "instructions": "Remember the orientation of each object. Press SPACE to end the delay and report the orientation. Show your confidence using the wedge.",
+  "url": "https://github.com/YOUR-USERNAME/selfpacedwm-exp",
+  "template": "jspsych",
+  "contributors": ["YOUR NAME"],
+  "time": 60,
+  "reference": []
+}
