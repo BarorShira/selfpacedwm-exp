@@ -288,6 +288,9 @@ function setupTrial(trialInBlock) {
   state.startOri1    = (state.conditionType === 'self_paced')
     ? randInt(1, 359)
     : state.yoked_sourceOrientation[trialInBlock];
+  // Preload image so it's ready when the trial screen appears
+  state._preloadedImg = new Image();
+  state._preloadedImg.src = imagePath(state.objectRow);
 }
 
 function setupDelay() {
@@ -356,28 +359,25 @@ function setupConfidence() {
 function renderDelay(canvas, bigHue, smallHue) {
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height, cx = W/2, cy = H/2;
-  // Gray background
   ctx.fillStyle = '#808080'; ctx.fillRect(0, 0, W, H);
-  // Outer colored circle — same radius as the image background circle (235px = 0.42 * 560 / 2 * scale)
-  const outerR = Math.min(W, H) * 0.42;
+  const outerR = Math.min(W, H) * 0.29;   // ~30% smaller than 0.42
   const innerR = outerR * 0.45;
   ctx.beginPath(); ctx.arc(cx, cy, outerR, 0, 2*Math.PI);
   ctx.fillStyle = hsvToRgb(bigHue, 1.0, 1.0); ctx.fill();
-  // Inner colored circle
   ctx.beginPath(); ctx.arc(cx, cy, innerR, 0, 2*Math.PI);
   ctx.fillStyle = hsvToRgb(smallHue, 1.0, 1.0); ctx.fill();
 }
 
 function renderBackground(ctx, W, H) {
   ctx.fillStyle = '#808080'; ctx.fillRect(0, 0, W, H);
-  ctx.beginPath(); ctx.arc(W/2, H/2, Math.min(W,H)*0.42, 0, 2*Math.PI);
-  ctx.fillStyle = '#ffffff'; ctx.fill();   // white circle background
+  ctx.beginPath(); ctx.arc(W/2, H/2, Math.min(W,H)*0.29, 0, 2*Math.PI);
+  ctx.fillStyle = '#ffffff'; ctx.fill();
 }
 
 function renderRotatedImage(canvas, img, angleDeg) {
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height;
-  const size = Math.min(W, H) * 0.55;
+  const size = Math.min(W, H) * 0.38;   // matches new smaller circle
   ctx.clearRect(0, 0, W, H);
   renderBackground(ctx, W, H);
   ctx.save();
@@ -390,18 +390,27 @@ function renderRotatedImage(canvas, img, angleDeg) {
 function renderConfidence(canvas, img, responseOri, ori1, ori2) {
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height;
-  const size = Math.min(W, H) * 0.55;
-  const r = Math.min(W, H) * 0.42;
+  const size = Math.min(W, H) * 0.38;
+  const r = Math.min(W, H) * 0.29;
   ctx.clearRect(0, 0, W, H);
   renderBackground(ctx, W, H);
-  drawWedge(ctx, W/2, H/2, r, ori1, ori2, '#ffffff', 0.35);
-  ctx.save(); ctx.translate(W/2, H/2); ctx.rotate(responseOri * Math.PI / 180);
-  ctx.drawImage(img, -size/2, -size/2, size, size); ctx.restore();
-  ctx.save(); ctx.globalAlpha = 0.45; ctx.translate(W/2, H/2);
+
+  // Draw wedge arc between the two orientations
+  drawWedge(ctx, W/2, H/2, r, ori1, ori2, '#aaaaaa', 0.5);
+
+  // Both images drawn at their respective wedge-edge orientations (semi-transparent)
+  // so participant sees the wedge opening from responseOri outward
+  ctx.save(); ctx.globalAlpha = 0.6; ctx.translate(W/2, H/2);
   ctx.rotate(ori1 * Math.PI / 180);
   ctx.drawImage(img, -size/2, -size/2, size, size); ctx.restore();
-  ctx.save(); ctx.globalAlpha = 0.45; ctx.translate(W/2, H/2);
+
+  ctx.save(); ctx.globalAlpha = 0.6; ctx.translate(W/2, H/2);
   ctx.rotate(ori2 * Math.PI / 180);
+  ctx.drawImage(img, -size/2, -size/2, size, size); ctx.restore();
+
+  // Solid image at responseOri on top
+  ctx.save(); ctx.translate(W/2, H/2);
+  ctx.rotate(responseOri * Math.PI / 180);
   ctx.drawImage(img, -size/2, -size/2, size, size); ctx.restore();
 }
 
@@ -477,8 +486,8 @@ function makeResponseTrial() {
     on_load: () => {
       const canvas = getCanvas();
       if (!canvas) return;
-      const img = new Image();
-      img.src = imagePath(state.objectRow);
+      const img = state._preloadedImg || new Image();
+      if (!img.src) img.src = imagePath(state.objectRow);
       let animId, leftHeld = false, rightHeld = false;
       state.rotKeySpeed = ROT_INITIAL_SPEED;
 
@@ -554,8 +563,8 @@ function makeConfidenceTrial() {
       const canvas = getCanvas();
       if (!canvas) return;
       const W = canvas.width, H = canvas.height;
-      const img = new Image();
-      img.src = imagePath(state.objectRow);
+      const img = state._preloadedImg || new Image();
+      if (!img.src) img.src = imagePath(state.objectRow);
       let animId, widerHeld = false, narrowerHeld = false;
 
       function frame() {
