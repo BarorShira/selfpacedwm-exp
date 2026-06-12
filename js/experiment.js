@@ -492,7 +492,7 @@ function renderConfidence(canvas, img, responseOri, ori1, ori2) {
  * ───────────────────────────────────────────── */
 
 /** Generic text screen with SPACE to advance */
-function makeTextTrial(textFn, choices=['Space']) {
+function makeTextTrial(textFn, choices=['']) {
   return {
     type: jsPsychHtmlKeyboardResponse,
     stimulus: () => {
