@@ -403,20 +403,17 @@ function renderConfidence(canvas, img, responseOri, ori1, ori2) {
   const cx = W/2, cy = H/2;
   const size = r * 2 * 0.92;
 
-  // Dark background matching PsychoPy window color
-  ctx.fillStyle = '#404040';
+  // Gray outer background
+  ctx.fillStyle = '#808080';
   ctx.fillRect(0, 0, W, H);
 
-  // Circle outline only (no fill) — matches PsychoPy PolygonComponent opacity 0.5
-  ctx.save();
+  // White filled circle — same as response screen, fills any gap between image and edge
   ctx.beginPath();
   ctx.arc(cx, cy, r, 0, 2 * Math.PI);
-  ctx.strokeStyle = 'rgba(0,0,0,0.5)';
-  ctx.lineWidth = 4;
-  ctx.stroke();
-  ctx.restore();
+  ctx.fillStyle = '#ffffff';
+  ctx.fill();
 
-  // Two images at 0.5 opacity, both clipped to circle, at ori1 and ori2
+  // Two images clipped to circle at 0.5 opacity
   function drawOne(angleDeg) {
     ctx.save();
     ctx.globalAlpha = 0.5;
