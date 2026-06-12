@@ -350,7 +350,7 @@ function setupResponse() {
 function setupConfidence() {
   state.confidenceOri1 = state.responseOri;
   state.confidenceOri2 = state.responseOri;
-  state.confKeySpeed = 1.0;
+  state.confKeySpeed = ROT_INITIAL_SPEED;
 }
 
 /** ─────────────────────────────────────────────
@@ -611,7 +611,7 @@ function makeConfidenceTrial() {
         if (btn.dataset.conf === 'wider')    { widerHeld = true;   narrowerHeld = false; }
         if (btn.dataset.conf === 'narrower') { narrowerHeld = true; widerHeld = false; }
       }
-      function onUp() { widerHeld = false; narrowerHeld = false; state.confKeySpeed = 1.0; }
+      function onUp() { widerHeld = false; narrowerHeld = false; state.confKeySpeed = ROT_INITIAL_SPEED; }
 
       document.addEventListener('mousedown', onDown);
       document.addEventListener('mouseup', onUp);
