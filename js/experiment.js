@@ -401,45 +401,36 @@ function renderConfidence(canvas, img, responseOri, ori1, ori2) {
   const W = canvas.width, H = canvas.height;
   const r = Math.min(W, H) * 0.29;
   const cx = W/2, cy = H/2;
+  const size = r * 2 * 0.92;
 
-  // 1. Gray outer background
-  ctx.fillStyle = '#808080';
+  // Dark background matching PsychoPy window color
+  ctx.fillStyle = '#404040';
   ctx.fillRect(0, 0, W, H);
 
-  // 2. White filled circle — identical to response screen
+  // Circle outline only (no fill) — matches PsychoPy PolygonComponent opacity 0.5
   ctx.save();
   ctx.beginPath();
   ctx.arc(cx, cy, r, 0, 2 * Math.PI);
-  ctx.fillStyle = '#ffffff';
-  ctx.fill();
+  ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+  ctx.lineWidth = 4;
+  ctx.stroke();
   ctx.restore();
 
-  // 3. Draw both images clipped strictly inside the circle.
-  //    Each image is drawn at reduced opacity so both are visible.
-  //    The clip ensures NO square corners ever appear outside the circle.
-  function drawOne(angleDeg, alpha) {
-    const size = r * 2 * 0.92;
+  // Two images at 0.5 opacity, both clipped to circle, at ori1 and ori2
+  function drawOne(angleDeg) {
     ctx.save();
-    ctx.globalAlpha = alpha;
-    // Set clip to circle
+    ctx.globalAlpha = 0.5;
     ctx.beginPath();
     ctx.arc(cx, cy, r, 0, 2 * Math.PI);
     ctx.clip();
-    // Rotate and draw
     ctx.translate(cx, cy);
     ctx.rotate(angleDeg * Math.PI / 180);
     ctx.drawImage(img, -size/2, -size/2, size, size);
     ctx.restore();
   }
 
-  // Draw wedge marker between the two orientations (subtle gray arc)
-  if (Math.abs(ori1 - ori2) > 0.1) {
-    drawWedge(ctx, cx, cy, r, ori1, ori2, '#cccccc', 0.4);
-  }
-
-  // Draw the two edge images
-  drawOne(ori1, 0.75);
-  drawOne(ori2, 0.75);
+  drawOne(ori1);
+  drawOne(ori2);
 }
 
 /** ─────────────────────────────────────────────
