@@ -370,48 +370,56 @@ function renderDelay(canvas, bigHue, smallHue) {
 
 function renderBackground(ctx, W, H) {
   ctx.fillStyle = '#808080'; ctx.fillRect(0, 0, W, H);
+  // Draw white circle
   ctx.beginPath(); ctx.arc(W/2, H/2, Math.min(W,H)*0.29, 0, 2*Math.PI);
   ctx.fillStyle = '#ffffff'; ctx.fill();
 }
 
-function renderRotatedImage(canvas, img, angleDeg) {
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
-  const size = Math.min(W, H) * 0.38;   // matches new smaller circle
-  ctx.clearRect(0, 0, W, H);
-  renderBackground(ctx, W, H);
+/** Draw image clipped inside the white circle so no gray corners ever appear */
+function drawClippedImage(ctx, img, cx, cy, r, angleDeg) {
+  const size = r * 2 * 0.92;  // image fills ~92% of the circle diameter
   ctx.save();
-  ctx.translate(W/2, H/2);
+  // Clip to circle
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, 2 * Math.PI);
+  ctx.clip();
+  // Draw rotated image
+  ctx.translate(cx, cy);
   ctx.rotate(angleDeg * Math.PI / 180);
   ctx.drawImage(img, -size/2, -size/2, size, size);
   ctx.restore();
 }
 
+function renderRotatedImage(canvas, img, angleDeg) {
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const r = Math.min(W, H) * 0.29;
+  renderBackground(ctx, W, H);
+  drawClippedImage(ctx, img, W/2, H/2, r, angleDeg);
+}
+
 function renderConfidence(canvas, img, responseOri, ori1, ori2) {
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height;
-  const size = Math.min(W, H) * 0.38;
   const r = Math.min(W, H) * 0.29;
-  ctx.clearRect(0, 0, W, H);
+  const cx = W/2, cy = H/2;
+
+  // Gray background + white circle
   renderBackground(ctx, W, H);
 
-  // Draw wedge arc between the two orientations
-  drawWedge(ctx, W/2, H/2, r, ori1, ori2, '#aaaaaa', 0.5);
+  // Draw wedge arc between ori1 and ori2
+  drawWedge(ctx, cx, cy, r, ori1, ori2, '#aaaaaa', 0.45);
 
-  // Both images drawn at their respective wedge-edge orientations (semi-transparent)
-  // so participant sees the wedge opening from responseOri outward
-  ctx.save(); ctx.globalAlpha = 0.6; ctx.translate(W/2, H/2);
-  ctx.rotate(ori1 * Math.PI / 180);
-  ctx.drawImage(img, -size/2, -size/2, size, size); ctx.restore();
+  // Two semi-transparent images at the wedge edges, clipped inside circle
+  ctx.save();
+  ctx.globalAlpha = 0.65;
+  drawClippedImage(ctx, img, cx, cy, r, ori1);
+  ctx.restore();
 
-  ctx.save(); ctx.globalAlpha = 0.6; ctx.translate(W/2, H/2);
-  ctx.rotate(ori2 * Math.PI / 180);
-  ctx.drawImage(img, -size/2, -size/2, size, size); ctx.restore();
-
-  // Solid image at responseOri on top
-  ctx.save(); ctx.translate(W/2, H/2);
-  ctx.rotate(responseOri * Math.PI / 180);
-  ctx.drawImage(img, -size/2, -size/2, size, size); ctx.restore();
+  ctx.save();
+  ctx.globalAlpha = 0.65;
+  drawClippedImage(ctx, img, cx, cy, r, ori2);
+  ctx.restore();
 }
 
 /** ─────────────────────────────────────────────
@@ -767,13 +775,25 @@ function buildTimeline(jsPsych) {
         setupTrial(trialIndex); setupDelay(); setupResponse(); setupConfidence();
       }});
       timeline.push(fixationTrial);
+      // Image presentation — use canvas so circle is pixel-identical to delay/response screens
       timeline.push({
-        type: jsPsychHtmlKeyboardResponse,
-        stimulus: () => `<div class="trial-screen">
-          <div class="stimulus-bg"></div>
-          <img class="stimulus-img" src="${imagePath(state.objectRow)}"
-               style="transform: rotate(${state.startOri1}deg)">
-        </div>`,
+        type: jsPsychCanvasKeyboardResponse,
+        canvas_size: [600, 600],
+        stimulus: (canvas) => {
+          const ctx = canvas.getContext('2d');
+          const W = canvas.width, H = canvas.height;
+          const r = Math.min(W, H) * 0.29;
+          renderBackground(ctx, W, H);
+          if (state._preloadedImg && state._preloadedImg.complete && state._preloadedImg.naturalWidth > 0) {
+            drawClippedImage(ctx, state._preloadedImg, W/2, H/2, r, state.startOri1);
+          } else {
+            // Image not ready yet — draw when loaded
+            state._preloadedImg.onload = () => {
+              renderBackground(ctx, W, H);
+              drawClippedImage(ctx, state._preloadedImg, W/2, H/2, r, state.startOri1);
+            };
+          }
+        },
         choices: 'NO_KEYS',
         trial_duration: IMAGE_DURATION_MS,
       });

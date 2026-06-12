@@ -38,12 +38,12 @@ body {
 .instructions {
   max-width: 660px;
   margin: 0 auto;
-  padding: 30px 28px;
+  padding: 36px 34px;
   background: rgba(0,0,0,0.25);
   border-radius: 8px;
-  line-height: 1.65;
+  line-height: 1.75;
   text-align: left;
-  font-size: 15px;
+  font-size: 19px;
 }
 
 .instructions strong {
