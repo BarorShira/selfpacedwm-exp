@@ -119,9 +119,9 @@ const REWARD = {
   tau: 1.2, B: 10.0, w_max: 25.0, gamma: 1.0,
 };
 
-const ROT_INCREASE_PER_FRAME = 0.04;   // slower acceleration
-const ROT_MAX_SPEED          = 2.0;   // lower top speed
-const ROT_INITIAL_SPEED      = 0.15;  // slower start
+const ROT_INCREASE_PER_FRAME = 0.015;  // very slow acceleration
+const ROT_MAX_SPEED          = 1.2;    // low top speed
+const ROT_INITIAL_SPEED      = 0.08;   // very slow start
 const MIN_WEDGE_GAP          = 0.7;
 
 /** ─────────────────────────────────────────────
@@ -404,13 +404,20 @@ function renderConfidence(canvas, img, responseOri, ori1, ori2) {
   const r = Math.min(W, H) * 0.29;
   const cx = W/2, cy = H/2;
 
-  // Gray background + white circle
-  renderBackground(ctx, W, H);
+  // Gray outer background
+  ctx.fillStyle = '#808080';
+  ctx.fillRect(0, 0, W, H);
 
-  // Draw wedge arc between ori1 and ori2
+  // White filled circle — drawn first so it stays visible everywhere inside
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, 2 * Math.PI);
+  ctx.fillStyle = '#ffffff';
+  ctx.fill();
+
+  // Gray wedge arc overlay between ori1 and ori2
   drawWedge(ctx, cx, cy, r, ori1, ori2, '#aaaaaa', 0.45);
 
-  // Two semi-transparent images at the wedge edges, clipped inside circle
+  // Two images clipped inside the circle at the wedge edges
   ctx.save();
   ctx.globalAlpha = 0.65;
   drawClippedImage(ctx, img, cx, cy, r, ori1);
