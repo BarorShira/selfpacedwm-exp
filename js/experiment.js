@@ -825,7 +825,20 @@ function makeBlockEndTrial() {
  * ───────────────────────────────────────────── */
 function buildTimeline(jsPsych) {
 
-  const timeline = [];
+    const timeline = [];
+    // Click to start - required for keyboard input in browsers
+    timeline.push({
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: '<div class="instructions">Click anywhere on this page to begin, then press SPACE to continue.</div>',
+        choices: 'ALL_KEYS',
+        on_load: () => {
+            document.addEventListener('click', () => {
+                jsPsych.finishTrial();
+            }, { once: true });
+        },
+    });
+
+
 
   // ── Instructions ──
   timeline.push(makeTextTrial(
