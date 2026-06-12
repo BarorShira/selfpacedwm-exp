@@ -1016,10 +1016,13 @@ function downloadFallback() {
 window.runExperiment = function() {
   initExperiment();
 
-  const jsPsych = initJsPsych({
-    display_element: 'jspsych-target',
-    on_finish: () => {},
-  });
+    const jsPsych = initJsPsych({
+        display_element: 'jspsych-target',
+        on_trial_start: () => {
+            document.getElementById('jspsych-target').focus();
+        },
+        on_finish: () => { },
+    });
 
   jsPsych.run(buildTimeline(jsPsych));
 };
