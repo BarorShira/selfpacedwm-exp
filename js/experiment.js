@@ -375,15 +375,13 @@ function renderBackground(ctx, W, H) {
   ctx.fillStyle = '#ffffff'; ctx.fill();
 }
 
-/** Draw image clipped inside the white circle so no gray corners ever appear */
+/** Draw image clipped strictly inside the circle — clip applied before any transform */
 function drawClippedImage(ctx, img, cx, cy, r, angleDeg) {
-  const size = r * 2 * 0.92;  // image fills ~92% of the circle diameter
+  const size = r * 2 * 0.92;
   ctx.save();
-  // Clip to circle
   ctx.beginPath();
   ctx.arc(cx, cy, r, 0, 2 * Math.PI);
   ctx.clip();
-  // Draw rotated image
   ctx.translate(cx, cy);
   ctx.rotate(angleDeg * Math.PI / 180);
   ctx.drawImage(img, -size/2, -size/2, size, size);
@@ -404,29 +402,44 @@ function renderConfidence(canvas, img, responseOri, ori1, ori2) {
   const r = Math.min(W, H) * 0.29;
   const cx = W/2, cy = H/2;
 
-  // Gray outer background
+  // 1. Gray outer background
   ctx.fillStyle = '#808080';
   ctx.fillRect(0, 0, W, H);
 
-  // White filled circle — drawn first so it stays visible everywhere inside
+  // 2. White filled circle — identical to response screen
+  ctx.save();
   ctx.beginPath();
   ctx.arc(cx, cy, r, 0, 2 * Math.PI);
   ctx.fillStyle = '#ffffff';
   ctx.fill();
-
-  // Gray wedge arc overlay between ori1 and ori2
-  drawWedge(ctx, cx, cy, r, ori1, ori2, '#aaaaaa', 0.45);
-
-  // Two images clipped inside the circle at the wedge edges
-  ctx.save();
-  ctx.globalAlpha = 0.65;
-  drawClippedImage(ctx, img, cx, cy, r, ori1);
   ctx.restore();
 
-  ctx.save();
-  ctx.globalAlpha = 0.65;
-  drawClippedImage(ctx, img, cx, cy, r, ori2);
-  ctx.restore();
+  // 3. Draw both images clipped strictly inside the circle.
+  //    Each image is drawn at reduced opacity so both are visible.
+  //    The clip ensures NO square corners ever appear outside the circle.
+  function drawOne(angleDeg, alpha) {
+    const size = r * 2 * 0.92;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    // Set clip to circle
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, 2 * Math.PI);
+    ctx.clip();
+    // Rotate and draw
+    ctx.translate(cx, cy);
+    ctx.rotate(angleDeg * Math.PI / 180);
+    ctx.drawImage(img, -size/2, -size/2, size, size);
+    ctx.restore();
+  }
+
+  // Draw wedge marker between the two orientations (subtle gray arc)
+  if (Math.abs(ori1 - ori2) > 0.1) {
+    drawWedge(ctx, cx, cy, r, ori1, ori2, '#cccccc', 0.4);
+  }
+
+  // Draw the two edge images
+  drawOne(ori1, 0.75);
+  drawOne(ori2, 0.75);
 }
 
 /** ─────────────────────────────────────────────
