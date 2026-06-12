@@ -119,9 +119,9 @@ const REWARD = {
   tau: 1.2, B: 10.0, w_max: 25.0, gamma: 1.0,
 };
 
-const ROT_INCREASE_PER_FRAME = 0.25;
-const ROT_MAX_SPEED          = 5.0;
-const ROT_INITIAL_SPEED      = 0.5;
+const ROT_INCREASE_PER_FRAME = 0.04;   // slower acceleration
+const ROT_MAX_SPEED          = 2.0;   // lower top speed
+const ROT_INITIAL_SPEED      = 0.15;  // slower start
 const MIN_WEDGE_GAP          = 0.7;
 
 /** ─────────────────────────────────────────────
@@ -356,17 +356,22 @@ function setupConfidence() {
 function renderDelay(canvas, bigHue, smallHue) {
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height, cx = W/2, cy = H/2;
+  // Gray background
   ctx.fillStyle = '#808080'; ctx.fillRect(0, 0, W, H);
-  ctx.beginPath(); ctx.arc(cx, cy, 120, 0, 2*Math.PI);
+  // Outer colored circle — same radius as the image background circle (235px = 0.42 * 560 / 2 * scale)
+  const outerR = Math.min(W, H) * 0.42;
+  const innerR = outerR * 0.45;
+  ctx.beginPath(); ctx.arc(cx, cy, outerR, 0, 2*Math.PI);
   ctx.fillStyle = hsvToRgb(bigHue, 1.0, 1.0); ctx.fill();
-  ctx.beginPath(); ctx.arc(cx, cy, 60, 0, 2*Math.PI);
+  // Inner colored circle
+  ctx.beginPath(); ctx.arc(cx, cy, innerR, 0, 2*Math.PI);
   ctx.fillStyle = hsvToRgb(smallHue, 1.0, 1.0); ctx.fill();
 }
 
 function renderBackground(ctx, W, H) {
   ctx.fillStyle = '#808080'; ctx.fillRect(0, 0, W, H);
   ctx.beginPath(); ctx.arc(W/2, H/2, Math.min(W,H)*0.42, 0, 2*Math.PI);
-  ctx.fillStyle = '#b0b0b0'; ctx.fill();
+  ctx.fillStyle = '#ffffff'; ctx.fill();   // white circle background
 }
 
 function renderRotatedImage(canvas, img, angleDeg) {
