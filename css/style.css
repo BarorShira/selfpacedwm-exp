@@ -15,7 +15,7 @@ body {
 
 #jspsych-target {
   width: 100%;
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
@@ -36,9 +36,9 @@ body {
 
 /* ─── Instructions / text screens ──────────────────── */
 .instructions {
-  max-width: 900px;
+  max-width: 1100px;
   margin: 0 auto;
-  padding: 30px 40px;
+  padding: 30px 50px;
   background: rgba(0,0,0,0.25);
   border-radius: 8px;
   line-height: 1.75;
@@ -79,8 +79,8 @@ body {
 /* ─── Trial / stimulus screen ───────────────────────── */
 .trial-screen {
   position: relative;
-  width: 560px;
-  height: 560px;
+  width: 480px;
+  height: 480px;
   margin: 0 auto;
   background: #808080;
   display: flex;
@@ -90,8 +90,8 @@ body {
 
 .stimulus-bg {
   position: absolute;
-  width: 330px;
-  height: 330px;
+  width: 280px;
+  height: 280px;
   border-radius: 50%;
   background: #ffffff;
 }
@@ -99,8 +99,8 @@ body {
 .stimulus-img {
   position: relative;
   z-index: 2;
-  width: 210px;
-  height: 210px;
+  width: 180px;
+  height: 180px;
   object-fit: contain;
 }
 
@@ -166,12 +166,12 @@ body {
 }
 
 .feedback-img {
-  width: 160px;
-  height: 160px;
+  width: 130px;
+  height: 130px;
   object-fit: contain;
   background: #ffffff;
   border-radius: 50%;
-  padding: 18px;
+  padding: 16px;
 }
 
 .feedback-msg {

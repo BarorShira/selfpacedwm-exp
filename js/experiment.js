@@ -192,6 +192,7 @@ const state = {
   responseOri: 0, adjustmentStartOri: 0, thisOriT1: 0, rotKeySpeed: ROT_INITIAL_SPEED,
   confidenceOri1: 0, confidenceOri2: 0, confKeySpeed: 1.0, confidenceWedgeWidth: 0,
   winningPoints: 0, feedbackText: '',
+  isPractice: false, isYokedPractice: false,
 };
 
 const trialData = [];
@@ -477,7 +478,7 @@ const fixationTrial = {
 function makeImageCanvasTrial() {
   return {
     type: jsPsychCanvasKeyboardResponse,
-    canvas_size: [600, 600],
+    canvas_size: [480, 480],
     stimulus: (canvas) => {
       const ctx = canvas.getContext('2d');
       const W = canvas.width, H = canvas.height;
@@ -500,7 +501,7 @@ function makeImageCanvasTrial() {
 function makeDelayTrial() {
   return {
     type: jsPsychCanvasKeyboardResponse,
-    canvas_size: [600, 600],
+    canvas_size: [480, 480],
     stimulus: (canvas) => { renderDelay(canvas, state.hue, state.smallPolygonHue); },
     choices: [' '],
     response_ends_trial: true,
@@ -530,7 +531,7 @@ function makeDelayTrial() {
 function makeResponseTrial() {
   return {
     type: jsPsychCanvasKeyboardResponse,
-    canvas_size: [600, 600],
+    canvas_size: [480, 480],
     stimulus: (canvas) => {
       const ctx = canvas.getContext('2d');
       ctx.fillStyle = '#808080'; ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -608,7 +609,7 @@ function makeResponseTrial() {
 function makeConfidenceTrial() {
   return {
     type: jsPsychCanvasKeyboardResponse,
-    canvas_size: [600, 600],
+    canvas_size: [480, 480],
     stimulus: (canvas) => {
       const ctx = canvas.getContext('2d');
       ctx.fillStyle = '#808080'; ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -704,6 +705,21 @@ function makeFeedbackTrial() {
         msg = `Great job!<br>${Math.round(e)} degrees difference.<br>You win ${Math.round(rew.total)} points`;
       else
         msg = `${Math.round(e)} degrees difference.<br>You win ${Math.round(rew.total)} points`;
+
+      // Practice-only colour-match feedback (yoked practice trials only)
+      if (state.isYokedPractice && state.yokedScheduledDelay !== null) {
+        const timingError = state.delayDuration - state.yokedScheduledDelay;
+        const absErr = Math.abs(timingError);
+        let timingMsg;
+        if (absErr < 0.15) {
+          timingMsg = `<br><br><em>Colour-match: excellent timing! You pressed ${absErr.toFixed(2)} s ${timingError < 0 ? 'before' : 'after'} the perfect match.</em>`;
+        } else if (timingError < 0) {
+          timingMsg = `<br><br><em>Colour-match: you pressed ${absErr.toFixed(2)} s <strong>before</strong> the colours matched. Try waiting a bit longer next time.</em>`;
+        } else {
+          timingMsg = `<br><br><em>Colour-match: you pressed ${absErr.toFixed(2)} s <strong>after</strong> the colours matched. Try responding a bit sooner next time.</em>`;
+        }
+        msg += timingMsg;
+      }
 
       recordTrial({
         conditionType: state.conditionType, expBlock: state.expBlock,
@@ -808,13 +824,15 @@ function buildTimeline(jsPsych) {
   timeline.push(makeTextTrial(
     '<strong>Practice — Self-paced</strong>\n\n' +
     'Let\'s try 2 practice trials. The first 2 practice trials are <strong>SELF-PACED</strong>: press SPACE during the coloured circles whenever you want to report the rotation.\n\n' +
-    'These trials do not count toward your points.\n\n' +
+    'You will see how many points you would have earned, but practice trials do not count toward your final score.\n\n' +
     'Press <strong>Continue</strong> to start.'
   ));
 
   // Set up practice — self-paced
   timeline.push({ type: jsPsychCallFunction, func: () => {
-    state.expBlock = -1;  // marker for practice
+    state.isPractice = true;
+    state.isYokedPractice = false;
+    state.expBlock = -1;
     state.conditionType = 'self_paced';
     state.sourcePairN = -1;
     state.blockPoints = 0;
@@ -843,12 +861,16 @@ function buildTimeline(jsPsych) {
   // Yoked practice intro
   timeline.push(makeTextTrial(
     '<strong>Practice — Colour-matching</strong>\n\n' +
-    'Now 2 practice trials in the <strong>COLOUR-MATCHING</strong> condition: during the coloured circles, press SPACE the moment the outer (changing) circle\'s colour matches the inner (fixed) circle\'s colour.\n\n' +
+    'Now 2 practice trials in the <strong>COLOUR-MATCHING</strong> condition.\n\n' +
+    'During the coloured circles, the inner (small) circle\'s colour stays fixed, while the outer (large) circle\'s colour cycles continuously. Your task is to press <strong>SPACE</strong> the moment the outer circle\'s colour matches the inner circle\'s colour.\n\n' +
     'Remember to keep the object\'s rotation in mind — you\'ll still be asked to report it afterwards.\n\n' +
+    'In these practice trials only, you will get feedback on how close you were to the perfect colour-match moment. <strong>This feedback will not appear in the main experiment</strong>, so use these trials to learn the timing.\n\n' +
     'Press <strong>Continue</strong> to start.'
   ));
 
   timeline.push({ type: jsPsychCallFunction, func: () => {
+    state.isPractice = true;
+    state.isYokedPractice = true;
     state.conditionType = 'yoked';
     state.rowsInBlock = state.practiceRows.slice(2, 4);
     // Build a yoked schedule from the 2 self-paced practice trials
@@ -884,14 +906,24 @@ function buildTimeline(jsPsych) {
     timeline.push(makeFeedbackTrial());
   }
 
-  // Transition to main experiment
+  // Clear practice flags before main experiment
+  timeline.push({ type: jsPsychCallFunction, func: () => {
+    state.isPractice = false;
+    state.isYokedPractice = false;
+  }});
+
+  // Recap before main experiment
   timeline.push(makeTextTrial(
     '<strong>End of practice</strong>\n\n' +
     'You are now ready to begin the main experiment. From this point on, all trials count toward your points.\n\n' +
-    'Remember:\n' +
-    '• Try to rotate the object back to its <strong>exact original angle</strong>.\n' +
-    '• Set your confidence wedge to honestly reflect how sure you are.\n' +
-    '• In colour-matching blocks, watch for the colour match.\n\n' +
+    '<strong>Quick recap:</strong>\n' +
+    '• Each trial starts with a + sign, then an object appears briefly.\n' +
+    '• During the coloured circles, press <strong>SPACE</strong>:\n' +
+    '   – In <strong>self-paced</strong> blocks, whenever you want to report the rotation (waiting longer earns more points).\n' +
+    '   – In <strong>colour-matching</strong> blocks, the moment the two circles\' colours match.\n' +
+    '• Rotate the object back to its <strong>exact original angle</strong> using the buttons, then press SPACE.\n' +
+    '• Set your wedge to honestly reflect how confident you are.\n\n' +
+    'Blocks alternate self-paced and colour-matching. You will be told which type each block is.\n\n' +
     'Press <strong>Continue</strong> to start block 1 of 12.'
   ));
 
