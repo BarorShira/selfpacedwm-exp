@@ -407,16 +407,15 @@ function renderConfidence(canvas, img, responseOri, ori1, ori2) {
   ctx.fillStyle = '#808080';
   ctx.fillRect(0, 0, W, H);
 
-  // White filled circle — same as response screen, fills any gap between image and edge
+  // White filled circle — same as response screen
   ctx.beginPath();
   ctx.arc(cx, cy, r, 0, 2 * Math.PI);
   ctx.fillStyle = '#ffffff';
   ctx.fill();
 
-  // Two images clipped to circle at 0.5 opacity
+  // Two images at full opacity, clipped to circle
   function drawOne(angleDeg) {
     ctx.save();
-    ctx.globalAlpha = 0.5;
     ctx.beginPath();
     ctx.arc(cx, cy, r, 0, 2 * Math.PI);
     ctx.clip();
