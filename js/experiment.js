@@ -413,9 +413,10 @@ function renderConfidence(canvas, img, responseOri, ori1, ori2) {
   ctx.fillStyle = '#ffffff';
   ctx.fill();
 
-  // Two images at full opacity, clipped to circle
+  // Two images clipped to circle, semi-transparent so both visible when spread
   function drawOne(angleDeg) {
     ctx.save();
+    ctx.globalAlpha = 0.6;
     ctx.beginPath();
     ctx.arc(cx, cy, r, 0, 2 * Math.PI);
     ctx.clip();
