@@ -307,32 +307,36 @@ function setupTrial(trialInBlock) {
 function setupDelay() {
   state.delayDuration = null; state.bigPolygonFinalHue = null;
   if (state.conditionType === 'self_paced') {
-    state.targetHue = state.smallPolygonHue; state.hueStart = 0.0;
-    state.hue = 0.0; state.hueSpeed = DEFAULT_HUE_SPEED;
-    state.hueDistance = null; state.yokedScheduledDelay = null;
+    state.targetHue = state.smallPolygonHue;
+    state.hueStart = 0.0;
+    state.hue = 0.0;
+    state.hueSpeed = DEFAULT_HUE_SPEED;        // 1/6 cycle per second
+    state.hueDistance = null;
+    state.yokedScheduledDelay = null;
   } else {
     let ysd = state.yoked_sourceDelayDuration[state.trialInBlock];
     if (!ysd || ysd <= 0) ysd = 0.25;
     state.yokedScheduledDelay = ysd;
+
+    // Inner circle = final outer hue from matched self-paced trial
     state.targetHue = state.yoked_sourceFinalHue[state.trialInBlock];
     state.smallPolygonHue = state.targetHue;
-    state.hueStart = (state.targetHue + 0.5) % 1.0;
-    state.hue = state.hueStart;
-    state.hueDistance = ((state.targetHue - state.hueStart) % 1.0 + 1.0) % 1.0;
-    state.hueSpeed = state.hueDistance / state.yokedScheduledDelay;
+
+    // Constant cycling rate (same as self-paced). Compute starting outer hue so
+    // that at elapsed = yokedScheduledDelay, the outer hue equals the inner hue.
+    //   hue(t) = (hueStart + DEFAULT_HUE_SPEED * t) mod 1
+    //   want hue(ysd) = targetHue  →  hueStart = targetHue - DEFAULT_HUE_SPEED * ysd
+    state.hueSpeed  = DEFAULT_HUE_SPEED;
+    state.hueStart  = (((state.targetHue - DEFAULT_HUE_SPEED * ysd) % 1.0) + 1.0) % 1.0;
+    state.hue       = state.hueStart;
+    state.hueDistance = null;
   }
 }
 
 function updateDelayHue(elapsed) {
-  if (state.conditionType === 'self_paced') {
-    state.hue = (state.hueStart + state.hueSpeed * elapsed) % 1.0;
-  } else {
-    if (elapsed <= state.yokedScheduledDelay) {
-      state.hue = (state.hueStart + (elapsed / state.yokedScheduledDelay) * state.hueDistance) % 1.0;
-    } else {
-      state.hue = (state.targetHue + state.hueSpeed * (elapsed - state.yokedScheduledDelay)) % 1.0;
-    }
-  }
+  // Identical equation in both conditions — same rate, same direction, no
+  // change before/after any match point.
+  state.hue = (state.hueStart + state.hueSpeed * elapsed) % 1.0;
 }
 
 function endDelay(elapsed) {
@@ -684,7 +688,10 @@ function makeFeedbackTrial() {
         objectRow: state.objectRow, stimulusName: STIMULI[state.objectRow],
         startOri1: state.startOri1, delayDuration: state.delayDuration,
         yokedScheduledDelay: state.yokedScheduledDelay,
-        bigPolygonFinalHue: state.bigPolygonFinalHue,
+        smallPolygonHue: state.smallPolygonHue,        // inner-circle hue this trial
+        targetHue: state.targetHue,                    // target outer hue (for yoked) / inner hue carried over (for SP)
+        bigPolygonStartHue: state.hueStart,            // outer hue at delay onset
+        bigPolygonFinalHue: state.bigPolygonFinalHue,  // outer hue at SPACE press
         responseOri: state.responseOri, angle_diff: e,
         confidenceWedgeWidth: state.confidenceWedgeWidth,
         d_credit_raw: rew.d_credit_raw, d_clamped: rew.d,
