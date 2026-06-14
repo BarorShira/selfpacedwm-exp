@@ -119,9 +119,9 @@ const REWARD = {
   tau: 1.2, B: 10.0, w_max: 25.0, gamma: 1.0,
 };
 
-const ROT_INCREASE_PER_FRAME = 0.015;  // very slow acceleration
-const ROT_MAX_SPEED          = 1.2;    // low top speed
-const ROT_INITIAL_SPEED      = 0.08;   // very slow start
+const ROT_INCREASE_PER_FRAME = 0.0001;  // matches PsychoPy increasePerFrame
+const ROT_MAX_SPEED          = 5.0;     // matches PsychoPy keySpeed > 5 cap
+const ROT_INITIAL_SPEED      = 1.0;     // matches PsychoPy keySpeed = 1
 const MIN_WEDGE_GAP          = 0.7;
 
 /** ─────────────────────────────────────────────
@@ -509,10 +509,12 @@ function makeResponseTrial() {
 
       function frame() {
         if (leftHeld) {
-          state.rotKeySpeed = Math.min(state.rotKeySpeed + ROT_INCREASE_PER_FRAME, ROT_MAX_SPEED);
+          state.rotKeySpeed += ROT_INCREASE_PER_FRAME;
+          if (state.rotKeySpeed > ROT_MAX_SPEED) state.rotKeySpeed = ROT_INCREASE_PER_FRAME;
           state.thisOriT1 -= state.rotKeySpeed;
         } else if (rightHeld) {
-          state.rotKeySpeed = Math.min(state.rotKeySpeed + ROT_INCREASE_PER_FRAME, ROT_MAX_SPEED);
+          state.rotKeySpeed += ROT_INCREASE_PER_FRAME;
+          if (state.rotKeySpeed > ROT_MAX_SPEED) state.rotKeySpeed = ROT_INCREASE_PER_FRAME;
           state.thisOriT1 += state.rotKeySpeed;
         } else {
           state.rotKeySpeed = ROT_INITIAL_SPEED;
@@ -586,17 +588,19 @@ function makeConfidenceTrial() {
 
       function frame() {
         if (widerHeld) {
-          state.confKeySpeed = Math.min(state.confKeySpeed + ROT_INCREASE_PER_FRAME, ROT_MAX_SPEED);
+          state.confKeySpeed += ROT_INCREASE_PER_FRAME;
+          if (state.confKeySpeed > ROT_MAX_SPEED) state.confKeySpeed = ROT_INCREASE_PER_FRAME;
           state.confidenceOri1 -= state.confKeySpeed;
           state.confidenceOri2 += state.confKeySpeed;
         } else if (narrowerHeld) {
           if (angularDistance(state.confidenceOri1, state.confidenceOri2) > MIN_WEDGE_GAP) {
-            state.confKeySpeed = Math.min(state.confKeySpeed + ROT_INCREASE_PER_FRAME, ROT_MAX_SPEED);
+            state.confKeySpeed += ROT_INCREASE_PER_FRAME;
+            if (state.confKeySpeed > ROT_MAX_SPEED) state.confKeySpeed = ROT_INCREASE_PER_FRAME;
             state.confidenceOri1 += state.confKeySpeed;
             state.confidenceOri2 -= state.confKeySpeed;
           }
         } else {
-          state.confKeySpeed = 1.0;
+          state.confKeySpeed = ROT_INITIAL_SPEED;
         }
         if (img.complete && img.naturalWidth > 0)
           renderConfidence(canvas, img, state.responseOri, state.confidenceOri1, state.confidenceOri2);
