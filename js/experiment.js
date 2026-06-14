@@ -196,6 +196,17 @@ const state = {
 
 const trialData = [];
 
+/** Active animation cleanup — guarantees old loops are stopped before new ones start */
+const activeCleanup = { fn: null };
+function registerCleanup(fn) {
+  if (activeCleanup.fn) try { activeCleanup.fn(); } catch(e){}
+  activeCleanup.fn = fn;
+}
+function runCleanup() {
+  if (activeCleanup.fn) try { activeCleanup.fn(); } catch(e){}
+  activeCleanup.fn = null;
+}
+
 function recordTrial(extra) { trialData.push(Object.assign({}, extra)); }
 
 /** ─────────────────────────────────────────────
@@ -479,10 +490,10 @@ function makeDelayTrial() {
       }
       animId = requestAnimationFrame(frame);
       canvas._cancelAnim = () => cancelAnimationFrame(animId);
+      registerCleanup(canvas._cancelAnim);
     },
     on_finish: (data) => {
-      const canvas = getCanvas();
-      if (canvas && canvas._cancelAnim) canvas._cancelAnim();
+      runCleanup();
       const elapsed = data.rt ? data.rt / 1000 : (performance.now() - state.delayStartTime) / 1000;
       endDelay(elapsed);
     },
@@ -545,6 +556,7 @@ function makeResponseTrial() {
         document.removeEventListener('touchstart', onDown);
         document.removeEventListener('touchend', onUp);
       };
+      registerCleanup(canvas._cancelResp);
 
       const container = canvas.parentElement;
       const btnDiv = document.createElement('div');
@@ -557,13 +569,11 @@ function makeResponseTrial() {
       canvas._btnDiv = btnDiv;
     },
     on_finish: () => {
+      runCleanup();
       const canvas = getCanvas();
-      if (canvas) {
-        if (canvas._cancelResp) canvas._cancelResp();
-        if (canvas._btnDiv) canvas._btnDiv.remove();
-      }
+      if (canvas && canvas._btnDiv) canvas._btnDiv.remove();
       state.responseOri = state.thisOriT1;
-      setupConfidence();  // must run AFTER responseOri is set
+      setupConfidence();
     },
   };
 }
@@ -629,6 +639,7 @@ function makeConfidenceTrial() {
         document.removeEventListener('touchstart', onDown);
         document.removeEventListener('touchend', onUp);
       };
+      registerCleanup(canvas._cancelConf);
 
       const container = canvas.parentElement;
       const btnDiv = document.createElement('div');
@@ -641,11 +652,9 @@ function makeConfidenceTrial() {
       canvas._btnDiv = btnDiv;
     },
     on_finish: () => {
+      runCleanup();
       const canvas = getCanvas();
-      if (canvas) {
-        if (canvas._cancelConf) canvas._cancelConf();
-        if (canvas._btnDiv) canvas._btnDiv.remove();
-      }
+      if (canvas && canvas._btnDiv) canvas._btnDiv.remove();
       state.confidenceWedgeWidth = Math.abs(state.confidenceOri1 - state.confidenceOri2);
     },
   };
