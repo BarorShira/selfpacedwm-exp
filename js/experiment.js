@@ -107,7 +107,7 @@ const STIMULI = [
  * ───────────────────────────────────────────── */
 const N_TOTAL_OBJECTS     = STIMULI.length;  // 432
 const TRIALS_PER_BLOCK    = 20;
-const N_SELF_PACED_BLOCKS = 5;
+const N_SELF_PACED_BLOCKS = 6;               // 6 SP + 6 yoked = 12 total, 240 trials
 const N_TOTAL_BLOCKS      = N_SELF_PACED_BLOCKS * 2;
 const OBJECTS_PER_PAIR    = TRIALS_PER_BLOCK * 2;
 
@@ -474,6 +474,29 @@ const fixationTrial = {
   trial_duration: FIXATION_DURATION_MS,
 };
 
+function makeImageCanvasTrial() {
+  return {
+    type: jsPsychCanvasKeyboardResponse,
+    canvas_size: [600, 600],
+    stimulus: (canvas) => {
+      const ctx = canvas.getContext('2d');
+      const W = canvas.width, H = canvas.height;
+      const r = Math.min(W, H) * 0.29;
+      renderBackground(ctx, W, H);
+      if (state._preloadedImg && state._preloadedImg.complete && state._preloadedImg.naturalWidth > 0) {
+        drawClippedImage(ctx, state._preloadedImg, W/2, H/2, r, state.startOri1);
+      } else {
+        state._preloadedImg.onload = () => {
+          renderBackground(ctx, W, H);
+          drawClippedImage(ctx, state._preloadedImg, W/2, H/2, r, state.startOri1);
+        };
+      }
+    },
+    choices: 'NO_KEYS',
+    trial_duration: IMAGE_DURATION_MS,
+  };
+}
+
 function makeDelayTrial() {
   return {
     type: jsPsychCanvasKeyboardResponse,
@@ -746,39 +769,133 @@ function buildTimeline(jsPsych) {
     choices: ['Continue'],
   });
 
-  // Instructions
+  // ── Screen 1: Welcome & overview ──
   timeline.push(makeTextTrial(
-    'Welcome to the Object Orientation Experiment!\n\n' +
-    'In this experiment, you will remember the orientation of different objects.\n\n' +
-    'On each trial, an object will briefly appear on the screen at a particular orientation. ' +
-    'It will then disappear, and two colored circles will appear during a short delay.\n\n' +
-    'Your main task is to keep the object\'s orientation in mind during this delay.\n\n' +
-    'After the delay, the object will appear again at a different orientation. ' +
-    'Use the mouse to hold the left and right arrow buttons until the object matches its original orientation. ' +
-    'Press SPACE to confirm your answer.\n\n' +
-    'You will then show how close you think you were by opening a wedge around your answer. ' +
-    'Try to make the wedge wide enough to include the correct orientation, but not wider than necessary. ' +
-    'Too-wide wedges will earn little or no extra points.'
+    '<strong>Welcome!</strong>\n\n' +
+    'In this experiment, you will see everyday objects on the screen, and your task will be to remember their orientation — that is, how each object is rotated, like the hands of a clock.\n\n' +
+    'The experiment is divided into 12 blocks of 20 trials each. It takes about 60–90 minutes to complete.\n\n' +
+    'You will earn points based on how well you remember and how confident you are in your answer. Please give it your full attention.\n\n' +
+    'Press <strong>Continue</strong> to see what a single trial looks like.'
   ));
 
+  // ── Screen 2: Trial structure ──
   timeline.push(makeTextTrial(
-    'There are two types of blocks in this experiment.\n\n' +
-    'SELF-PACED BLOCKS\n' +
-    'You decide how long to keep the object in mind. ' +
-    'Press SPACE when you want to report the object\'s orientation. ' +
-    'You will earn more points by waiting longer, but only if you still remember the orientation well.\n\n' +
-    'COLOR-MATCHING BLOCKS\n' +
-    'The colored circles will also appear during the delay. ' +
-    'In these blocks, your task is to use the circles to decide when to respond. ' +
-    'Press SPACE when you think the changing outer circle matches the inner circle. ' +
-    'Keep the object\'s orientation in mind while doing this.\n\n' +
-    'In both block types, you will then report the object\'s original orientation ' +
-    'and show how close you think you were.\n\n' +
-    'Too-early responses will not earn points. ' +
-    'You will see how many points you earned after each trial and at the end of each block.'
+    '<strong>What happens on each trial</strong>\n\n' +
+    '<strong>Step 1.</strong> A cross (+) will appear in the centre of the screen. This means a trial is about to begin.\n\n' +
+    '<strong>Step 2.</strong> An object will briefly flash on the screen at a particular angle of rotation. Try to remember exactly how it was rotated.\n\n' +
+    '<strong>Step 3.</strong> Two coloured circles will appear — a small one inside a larger one. You will need to hold the object\'s rotation in mind while the circles are on screen. The outer circle\'s colour will keep changing throughout this period.\n\n' +
+    '<strong>Step 4.</strong> The same object will appear again, but rotated to a different angle. Your task is to rotate it back to <strong>exactly the same angle as the original</strong>. Use the <strong>Left</strong> and <strong>Right</strong> buttons that appear below the object — hold them down with the mouse to rotate. Press <strong>SPACE</strong> when you are done.\n\n' +
+    '<strong>Step 5.</strong> Finally, you will report how confident you are in your answer by opening a wedge of uncertainty around your chosen angle. Use the <strong>Narrower</strong> and <strong>Wider</strong> buttons to set the width. A narrow wedge means "I\'m very sure my answer is exactly right". A wide wedge means "I\'m not sure — the correct angle could be anywhere in this range".\n\n' +
+    'Press <strong>Continue</strong>.'
   ));
 
-  // 10 blocks
+  // ── Screen 3: Points and block types ──
+  timeline.push(makeTextTrial(
+    '<strong>How points work</strong>\n\n' +
+    'You earn points on each trial based on three things:\n\n' +
+    '<strong>• Accuracy.</strong> The closer your rotation is to the original, the more points. Errors larger than about 15 degrees earn nothing.\n\n' +
+    '<strong>• Time held in memory.</strong> You earn more points the longer you successfully held the object\'s rotation in mind before answering. Very fast responses (under about 1.25 seconds) earn no points.\n\n' +
+    '<strong>• Confidence.</strong> If your wedge is narrow and it includes the correct angle, you earn bonus points. A wedge that\'s too wide earns little or no bonus.\n\n\n' +
+    '<strong>Two types of blocks</strong>\n\n' +
+    '<strong>SELF-PACED blocks.</strong> You decide when to respond. Press SPACE during the coloured circles when you want to report the rotation. Waiting longer = more points, <em>if you still remember the rotation well.</em>\n\n' +
+    '<strong>COLOUR-MATCHING blocks.</strong> Your task during the circles is to press SPACE when the outer (changing) circle\'s colour matches the inner (fixed) circle\'s colour. The longer the colour-match takes, the more points are at stake — but you also need to remember the rotation just as well, since you\'ll still be asked to report it afterwards.\n\n' +
+    'Blocks alternate between these two types. You will be told at the start of each block which type it is.\n\n' +
+    'Press <strong>Continue</strong> for a short practice.'
+  ));
+
+  // ── PRACTICE PHASE ──
+  // 2 self-paced practice + 2 yoked practice
+  timeline.push(makeTextTrial(
+    '<strong>Practice — Self-paced</strong>\n\n' +
+    'Let\'s try 2 practice trials. The first 2 practice trials are <strong>SELF-PACED</strong>: press SPACE during the coloured circles whenever you want to report the rotation.\n\n' +
+    'These trials do not count toward your points.\n\n' +
+    'Press <strong>Continue</strong> to start.'
+  ));
+
+  // Set up practice — self-paced
+  timeline.push({ type: jsPsychCallFunction, func: () => {
+    state.expBlock = -1;  // marker for practice
+    state.conditionType = 'self_paced';
+    state.sourcePairN = -1;
+    state.blockPoints = 0;
+    state.rowsInBlock = state.practiceRows.slice(0, 2);
+    state.lastSelfPaced_trialInBlock = [];
+    state.lastSelfPaced_objectRow = [];
+    state.lastSelfPaced_startOri1 = [];
+    state.lastSelfPaced_delayDuration = [];
+    state.lastSelfPaced_bigPolygonFinalHue = [];
+    state.lastSelfPaced_smallPolygonHue = [];
+  }});
+
+  for (let t = 0; t < 2; t++) {
+    const trialIndex = t;
+    timeline.push({ type: jsPsychCallFunction, func: () => {
+      setupTrial(trialIndex); setupDelay(); setupResponse();
+    }});
+    timeline.push(fixationTrial);
+    timeline.push(makeImageCanvasTrial());
+    timeline.push(makeDelayTrial());
+    timeline.push(makeResponseTrial());
+    timeline.push(makeConfidenceTrial());
+    timeline.push(makeFeedbackTrial());
+  }
+
+  // Yoked practice intro
+  timeline.push(makeTextTrial(
+    '<strong>Practice — Colour-matching</strong>\n\n' +
+    'Now 2 practice trials in the <strong>COLOUR-MATCHING</strong> condition: during the coloured circles, press SPACE the moment the outer (changing) circle\'s colour matches the inner (fixed) circle\'s colour.\n\n' +
+    'Remember to keep the object\'s rotation in mind — you\'ll still be asked to report it afterwards.\n\n' +
+    'Press <strong>Continue</strong> to start.'
+  ));
+
+  timeline.push({ type: jsPsychCallFunction, func: () => {
+    state.conditionType = 'yoked';
+    state.rowsInBlock = state.practiceRows.slice(2, 4);
+    // Build a yoked schedule from the 2 self-paced practice trials
+    state.yoked_objectRow = state.rowsInBlock;
+    state.yoked_sourceTrialInBlock = [];
+    state.yoked_sourceObjectRow = [];
+    state.yoked_sourceOrientation = [];
+    state.yoked_sourceDelayDuration = [];
+    state.yoked_sourceFinalHue = [];
+    state.yoked_sourceSmallPolygonHue = [];
+    const order = shuffle([0, 1]);
+    for (let i = 0; i < 2; i++) {
+      const srcIdx = order[i];
+      state.yoked_sourceTrialInBlock.push(state.lastSelfPaced_trialInBlock[srcIdx]);
+      state.yoked_sourceObjectRow.push(state.lastSelfPaced_objectRow[srcIdx]);
+      state.yoked_sourceOrientation.push(state.lastSelfPaced_startOri1[srcIdx]);
+      state.yoked_sourceDelayDuration.push(state.lastSelfPaced_delayDuration[srcIdx]);
+      state.yoked_sourceFinalHue.push(state.lastSelfPaced_bigPolygonFinalHue[srcIdx]);
+      state.yoked_sourceSmallPolygonHue.push(state.lastSelfPaced_smallPolygonHue[srcIdx]);
+    }
+  }});
+
+  for (let t = 0; t < 2; t++) {
+    const trialIndex = t;
+    timeline.push({ type: jsPsychCallFunction, func: () => {
+      setupTrial(trialIndex); setupDelay(); setupResponse();
+    }});
+    timeline.push(fixationTrial);
+    timeline.push(makeImageCanvasTrial());
+    timeline.push(makeDelayTrial());
+    timeline.push(makeResponseTrial());
+    timeline.push(makeConfidenceTrial());
+    timeline.push(makeFeedbackTrial());
+  }
+
+  // Transition to main experiment
+  timeline.push(makeTextTrial(
+    '<strong>End of practice</strong>\n\n' +
+    'You are now ready to begin the main experiment. From this point on, all trials count toward your points.\n\n' +
+    'Remember:\n' +
+    '• Try to rotate the object back to its <strong>exact original angle</strong>.\n' +
+    '• Set your confidence wedge to honestly reflect how sure you are.\n' +
+    '• In colour-matching blocks, watch for the colour match.\n\n' +
+    'Press <strong>Continue</strong> to start block 1 of 12.'
+  ));
+
+  // ── 8 main blocks ──
   for (let blockN = 0; blockN < N_TOTAL_BLOCKS; blockN++) {
     timeline.push({ type: jsPsychCallFunction, func: () => applyBlockSettings(blockN) });
 
@@ -787,14 +904,15 @@ function buildTimeline(jsPsych) {
       type: jsPsychHtmlButtonResponse,
       stimulus: () => state.conditionType === 'self_paced'
         ? `<div class="instructions"><strong>SELF-PACED BLOCK</strong><br><br>
-            Remember the orientation of each object.<br><br>
-            Colored circles will appear during the delay, but you do not need to use their colors in this block.<br><br>
-            Press SPACE when you want to report the remembered orientation.<br>
-            By waiting longer you will earn more points, but only if you still remember the orientation well.
+            Remember the rotation of each object.<br><br>
+            During the coloured circles, press <strong>SPACE</strong> whenever you want to report the remembered rotation. Waiting longer earns more points, but only if you still remember the rotation well.<br><br>
+            Press <strong>Start block</strong> when ready.
           </div>`
-        : `<div class="instructions"><strong>COLOR-MATCHING BLOCK</strong><br><br>
-            Remember the orientation of each object.<br><br>
-            During the delay, press SPACE when you think the changing outer circle matches the inner circle.
+        : `<div class="instructions"><strong>COLOUR-MATCHING BLOCK</strong><br><br>
+            Remember the rotation of each object.<br><br>
+            During the coloured circles, press <strong>SPACE</strong> the moment you think the outer (changing) circle's colour matches the inner (fixed) circle's colour. The outer circle's colour cycles continuously, so respond as soon as you see the match.<br><br>
+            You will still be asked to report the object's rotation afterwards, so keep it in mind.<br><br>
+            Press <strong>Start block</strong> when ready.
           </div>`,
       choices: ['Start block'],
     });
@@ -806,28 +924,7 @@ function buildTimeline(jsPsych) {
         setupTrial(trialIndex); setupDelay(); setupResponse();
       }});
       timeline.push(fixationTrial);
-      // Image presentation — use canvas so circle is pixel-identical to delay/response screens
-      timeline.push({
-        type: jsPsychCanvasKeyboardResponse,
-        canvas_size: [600, 600],
-        stimulus: (canvas) => {
-          const ctx = canvas.getContext('2d');
-          const W = canvas.width, H = canvas.height;
-          const r = Math.min(W, H) * 0.29;
-          renderBackground(ctx, W, H);
-          if (state._preloadedImg && state._preloadedImg.complete && state._preloadedImg.naturalWidth > 0) {
-            drawClippedImage(ctx, state._preloadedImg, W/2, H/2, r, state.startOri1);
-          } else {
-            // Image not ready yet — draw when loaded
-            state._preloadedImg.onload = () => {
-              renderBackground(ctx, W, H);
-              drawClippedImage(ctx, state._preloadedImg, W/2, H/2, r, state.startOri1);
-            };
-          }
-        },
-        choices: 'NO_KEYS',
-        trial_duration: IMAGE_DURATION_MS,
-      });
+      timeline.push(makeImageCanvasTrial());
       timeline.push(makeDelayTrial());
       timeline.push(makeResponseTrial());
       timeline.push(makeConfidenceTrial());
@@ -872,6 +969,9 @@ function downloadFallback() {
 function initExperiment() {
   state.allObjectRows = Array.from({length: N_TOTAL_OBJECTS}, (_, i) => i);
   shuffle(state.allObjectRows);
+  // Reserve last 4 indices for practice (2 SP + 2 yoked), main exp uses first 160
+  state.practiceRows = state.allObjectRows.slice(-4);
+  state.allObjectRows = state.allObjectRows.slice(0, N_SELF_PACED_BLOCKS * OBJECTS_PER_PAIR);
   state.smallPolygonHue = 0.0;
 }
 
