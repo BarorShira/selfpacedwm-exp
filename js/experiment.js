@@ -686,6 +686,8 @@ function makeFeedbackTrial() {
         conditionType: state.conditionType, expBlock: state.expBlock,
         sourcePairN: state.sourcePairN, trialInBlock: state.trialInBlock,
         objectRow: state.objectRow, stimulusName: STIMULI[state.objectRow],
+        fixationDurationMs: FIXATION_DURATION_MS,      // fixed timing parameter
+        imageDurationMs: IMAGE_DURATION_MS,            // fixed timing parameter
         startOri1: state.startOri1, delayDuration: state.delayDuration,
         yokedScheduledDelay: state.yokedScheduledDelay,
         smallPolygonHue: state.smallPolygonHue,        // inner-circle hue this trial
