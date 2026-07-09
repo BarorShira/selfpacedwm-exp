@@ -8,6 +8,7 @@
  */
 const FIXATION_DURATION_MS  = 1500;   // fixation cross duration (ms)
 const IMAGE_DURATION_MS     = 800;    // object presentation duration (ms)
+const MAX_DELAY_MS          = 10000;  // maximum delay before auto-termination (ms)
 
 /** ─────────────────────────────────────────────
  *  STIMULUS LIST  (432 actual image filenames)
@@ -186,7 +187,7 @@ const state = {
   trialInBlock: 0, objectRow: 0, startOri1: 0,
   smallPolygonHue: 0.0, hue: 0.0, hueStart: 0.0, hueSpeed: DEFAULT_HUE_SPEED,
   hueDistance: null, targetHue: 0.0, yokedScheduledDelay: null,
-  delayDuration: null, bigPolygonFinalHue: null, delayStartTime: null,
+  delayDuration: null, bigPolygonFinalHue: null, delayStartTime: null, delayTimedOut: false,
   responseOri: 0, adjustmentStartOri: 0, thisOriT1: 0, rotKeySpeed: ROT_INITIAL_SPEED,
   confidenceOri1: 0, confidenceOri2: 0, confKeySpeed: 1.0, confidenceWedgeWidth: 0,
   winningPoints: 0, feedbackText: '',
@@ -338,8 +339,9 @@ function updateDelayHue(elapsed) {
   state.hue = (state.hueStart + state.hueSpeed * elapsed) % 1.0;
 }
 
-function endDelay(elapsed) {
+function endDelay(elapsed, timedOut) {
   state.delayDuration = elapsed;
+  state.delayTimedOut = !!timedOut;
   state.bigPolygonFinalHue = state.hue;
   if (state.conditionType === 'self_paced') {
     state.lastSelfPaced_trialInBlock.push(state.trialInBlock);
@@ -503,6 +505,7 @@ function makeDelayTrial() {
     stimulus: (canvas) => { renderDelay(canvas, state.hue, state.smallPolygonHue); },
     choices: [' '],
     response_ends_trial: true,
+    trial_duration: MAX_DELAY_MS,  // auto-terminate after 10 seconds
     on_load: () => {
       const canvas = getCanvas();
       if (!canvas) return;
@@ -520,8 +523,12 @@ function makeDelayTrial() {
     },
     on_finish: (data) => {
       runCleanup();
-      const elapsed = data.rt ? data.rt / 1000 : (performance.now() - state.delayStartTime) / 1000;
-      endDelay(elapsed);
+      // If rt is null, the trial timed out (participant did not press SPACE within MAX_DELAY_MS)
+      const timedOut = (data.rt === null || data.rt === undefined);
+      const elapsed = timedOut
+        ? MAX_DELAY_MS / 1000
+        : data.rt / 1000;
+      endDelay(elapsed, timedOut);
     },
   };
 }
@@ -725,7 +732,9 @@ function makeFeedbackTrial() {
         objectRow: state.objectRow, stimulusName: STIMULI[state.objectRow],
         fixationDurationMs: FIXATION_DURATION_MS,      // fixed timing parameter
         imageDurationMs: IMAGE_DURATION_MS,            // fixed timing parameter
+        maxDelayMs: MAX_DELAY_MS,                       // fixed timing parameter
         startOri1: state.startOri1, delayDuration: state.delayDuration,
+        delayTimedOut: state.delayTimedOut,            // true if trial hit 10s cap
         yokedScheduledDelay: state.yokedScheduledDelay,
         smallPolygonHue: state.smallPolygonHue,        // inner-circle hue this trial
         targetHue: state.targetHue,                    // target outer hue (for yoked) / inner hue carried over (for SP)
