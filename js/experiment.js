@@ -307,25 +307,30 @@ function setupTrial(trialInBlock) {
 function setupDelay() {
   state.delayDuration = null; state.bigPolygonFinalHue = null;
   if (state.conditionType === 'self_paced') {
-    state.targetHue = state.smallPolygonHue;
-    state.hueStart = 0.0;
-    state.hue = 0.0;
-    state.hueSpeed = DEFAULT_HUE_SPEED;        // 1/6 cycle per second
-    state.hueDistance = null;
+    // Independently randomise inner hue and outer starting hue.
+    // This breaks the confound where the outer's position gives away timing.
+    state.smallPolygonHue = Math.random();          // inner: uniform [0,1)
+    state.hueStart        = Math.random();          // outer start: uniform [0,1)
+    state.targetHue       = state.smallPolygonHue;  // logged for completeness
+    state.hue             = state.hueStart;
+    state.hueSpeed        = DEFAULT_HUE_SPEED;      // 1/6 cycle per second
+    state.hueDistance     = null;
     state.yokedScheduledDelay = null;
   } else {
     let ysd = state.yoked_sourceDelayDuration[state.trialInBlock];
     if (!ysd || ysd <= 0) ysd = 0.25;
     state.yokedScheduledDelay = ysd;
 
-    // Inner circle = final outer hue from matched self-paced trial
-    state.targetHue = state.yoked_sourceFinalHue[state.trialInBlock];
+    // Inner circle = final outer hue from the matched self-paced trial.
+    // This is the colour the outer must arrive at.
+    state.targetHue       = state.yoked_sourceFinalHue[state.trialInBlock];
     state.smallPolygonHue = state.targetHue;
 
-    // Constant cycling rate (same as self-paced). Compute starting outer hue so
-    // that at elapsed = yokedScheduledDelay, the outer hue equals the inner hue.
-    //   hue(t) = (hueStart + DEFAULT_HUE_SPEED * t) mod 1
-    //   want hue(ysd) = targetHue  →  hueStart = targetHue - DEFAULT_HUE_SPEED * ysd
+    // Outer starting hue is computed backward from the target at constant rate,
+    // so the match occurs exactly at yokedScheduledDelay seconds. Because the
+    // matched SP trial's starting outer was itself random and its duration was
+    // participant-driven, the resulting starting hue is uninformative about
+    // the duration.
     state.hueSpeed  = DEFAULT_HUE_SPEED;
     state.hueStart  = (((state.targetHue - DEFAULT_HUE_SPEED * ysd) % 1.0) + 1.0) % 1.0;
     state.hue       = state.hueStart;
@@ -350,7 +355,9 @@ function endDelay(elapsed, timedOut) {
     state.lastSelfPaced_delayDuration.push(state.delayDuration);
     state.lastSelfPaced_bigPolygonFinalHue.push(state.bigPolygonFinalHue);
     state.lastSelfPaced_smallPolygonHue.push(state.smallPolygonHue);
-    state.smallPolygonHue = state.bigPolygonFinalHue;
+    // NB: no carry-over of hue between trials — each SP trial randomises inner
+    // and outer independently in setupDelay(), which prevents the colour
+    // configuration from becoming informative about elapsed time.
   }
 }
 
@@ -979,20 +986,41 @@ function buildTimeline(jsPsych) {
     stimulus: '<div class="instructions">Thank you for participating!<br><br>Your data is being saved…</div>',
     choices: [],
     trial_duration: 2000,
-    on_finish: () => saveData(jsPsych),
+    // Saving happens automatically via initJsPsych on_finish (see runExperiment).
   });
 
   return timeline;
 }
 
 /** ─────────────────────────────────────────────
- *  DATA SAVING
+ *  DATA SAVING  (Experiment Factory pattern — matches d2 test example)
+ *  POSTs to /save with URL-encoded body { data: <json string> }, then
+ *  redirects to /next on success. Falls back to local download otherwise.
  * ───────────────────────────────────────────── */
-function saveData(jsPsych) {
-  const payload = { data: JSON.stringify({ trialData, allObjectRows: state.allObjectRows }) };
-  fetch('/save', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) })
-    .then(r => { if (r.ok) window.location.href = '/next'; else downloadFallback(); })
-    .catch(() => downloadFallback());
+function saveDataToServer(jsPsych) {
+  // Combine jsPsych's own data with our detailed trialData
+  const payload = JSON.stringify({
+    jsPsychData: jsPsych.data.get().values(),
+    trialData: trialData,
+    allObjectRows: state.allObjectRows,
+  });
+
+  const xhr = new XMLHttpRequest();
+  xhr.open('POST', '/save', true);
+  xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+  xhr.onload = function () {
+    if (xhr.status >= 200 && xhr.status < 300) {
+      document.location = '/next';
+    } else {
+      downloadFallback();
+    }
+  };
+  xhr.onerror = function () {
+    downloadFallback();
+  };
+
+  xhr.send('data=' + encodeURIComponent(payload));
 }
 
 function downloadFallback() {
@@ -1018,7 +1046,11 @@ window.runExperiment = function() {
   initExperiment();
   const jsPsych = initJsPsych({
     display_element: 'jspsych-target',
-    on_finish: () => {},
+    on_finish: function() {
+      // Called by jsPsych when the whole timeline is done.
+      // Sends data to Experiment Factory's /save endpoint.
+      saveDataToServer(jsPsych);
+    },
   });
   jsPsych.run(buildTimeline(jsPsych));
 };
