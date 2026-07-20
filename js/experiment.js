@@ -993,34 +993,38 @@ function buildTimeline(jsPsych) {
 }
 
 /** ─────────────────────────────────────────────
- *  DATA SAVING  (Experiment Factory pattern — matches d2 test example)
+ *  DATA SAVING  (jQuery $.ajax pattern — matches d2 test example exactly)
  *  POSTs to /save with URL-encoded body { data: <json string> }, then
  *  redirects to /next on success. Falls back to local download otherwise.
  * ───────────────────────────────────────────── */
 function saveDataToServer(jsPsych) {
-  // Combine jsPsych's own data with our detailed trialData
-  const payload = JSON.stringify({
-    jsPsychData: jsPsych.data.get().values(),
-    trialData: trialData,
-    allObjectRows: state.allObjectRows,
+  // Serialize the data in a promise, matching d2 pattern
+  var promise = new Promise(function(resolve, reject) {
+    var data = JSON.stringify({
+      jsPsychData: jsPsych.data.get().values(),
+      trialData: trialData,
+      allObjectRows: state.allObjectRows,
+    });
+    resolve(data);
   });
 
-  const xhr = new XMLHttpRequest();
-  xhr.open('POST', '/save', true);
-  xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-
-  xhr.onload = function () {
-    if (xhr.status >= 200 && xhr.status < 300) {
-      document.location = '/next';
-    } else {
-      downloadFallback();
-    }
-  };
-  xhr.onerror = function () {
-    downloadFallback();
-  };
-
-  xhr.send('data=' + encodeURIComponent(payload));
+  promise.then(function(data) {
+    $.ajax({
+      type: "POST",
+      url: '/save',
+      data: { "data": data },
+      success: function() { document.location = "/next"; },
+      dataType: "application/json",
+      // Endpoint not running, local save
+      error: function(err) {
+        if (err.status == 200) {
+          document.location = "/next";
+        } else {
+          downloadFallback();
+        }
+      }
+    });
+  });
 }
 
 function downloadFallback() {
