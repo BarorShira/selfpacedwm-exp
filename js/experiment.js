@@ -994,9 +994,27 @@ function buildTimeline(jsPsych) {
 
 /** ─────────────────────────────────────────────
  *  DATA SAVING  (jQuery $.ajax pattern — matches d2 test example exactly)
- *  POSTs to /save with URL-encoded body { data: <json string> }, then
- *  redirects to /next on success. Falls back to local download otherwise.
+ *  1. POSTs data to /save with URL-encoded body { data: <json string> }
+ *  2. On success, POSTs to /next so Experiment Factory marks the session
+ *     as finished (this is what triggers the results file to appear).
+ *  3. Then redirects the participant to Prolific's completion URL so
+ *     Prolific marks their submission as complete.
+ *  If /save fails, falls back to a local download so no data is lost.
  * ───────────────────────────────────────────── */
+const PROLIFIC_COMPLETION_URL = 'https://app.prolific.com/submissions/complete?cc=C1ON9UJ6';
+
+function goToProlific() {
+  // Tell Experiment Factory this session is done, then send the
+  // participant back to Prolific to complete their submission.
+  $.ajax({
+    type: "POST",
+    url: '/next',
+    complete: function() {
+      document.location = PROLIFIC_COMPLETION_URL;
+    }
+  });
+}
+
 function saveDataToServer(jsPsych) {
   // Serialize the data in a promise, matching d2 pattern
   var promise = new Promise(function(resolve, reject) {
@@ -1013,12 +1031,12 @@ function saveDataToServer(jsPsych) {
       type: "POST",
       url: '/save',
       data: { "data": data },
-      success: function() { document.location = "/next"; },
+      success: function() { goToProlific(); },
       dataType: "application/json",
       // Endpoint not running, local save
       error: function(err) {
         if (err.status == 200) {
-          document.location = "/next";
+          goToProlific();
         } else {
           downloadFallback();
         }
@@ -1031,7 +1049,11 @@ function downloadFallback() {
   const blob = new Blob([JSON.stringify(trialData, null, 2)], {type: 'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob); a.download = `selfpacedwm_${Date.now()}.json`; a.click();
-  document.body.innerHTML = '<div class="instructions">Data saved locally. You may close this window.</div>';
+  document.body.innerHTML =
+    '<div class="instructions">Thank you! Data saved locally. ' +
+    'If you started this experiment through Prolific, please enter the following completion code ' +
+    'in Prolific to receive credit:<br><br><strong>C1ON9UJ6</strong><br><br>' +
+    'You may now close this window.</div>';
 }
 
 /** ─────────────────────────────────────────────
