@@ -711,7 +711,7 @@ function makeFeedbackTrial() {
       state.blockPoints  += rew.total;
 
       let msg;
-      if (rew.d < REWARD.d_min)
+      if (state.conditionType === 'self_paced' && rew.d < REWARD.d_min)
         msg = `${Math.round(e)} degrees difference.<br>No points: response was too early.`;
       else if (e < 5)
         msg = `Great job!<br>${Math.round(e)} degrees difference.<br>You win ${Math.round(rew.total)} points`;
