@@ -1,6 +1,34 @@
 /**
- * SelfPacedWM Experiment
+ * SelfPacedWM Experiment — PILOT v2 (motor-free colour-matching)
  * Translated from PsychoPy to jsPsych 7
+ *
+ * ═══════════════════════════════════════════════════════════════════════
+ *  The deployed file KEEPS ITS NAME (js/experiment.js) — only its contents
+ *  change to this v2 version for pilot 2. The original button-press version
+ *  (the MAIN-cohort file) is preserved separately as a backup
+ *  (experiment_v1_buttonpress.js on the Drive) and is also recoverable from
+ *  this repo's git history.
+ *
+ *  DIFFERENCE FROM v1 (button-press version):
+ *
+ *  ONLY the colour-matching (yoked) condition changed. In v1 the participant
+ *  pressed SPACE when the outer/inner colours matched; here the delay
+ *  TERMINATES AUTOMATICALLY at the colour match (== the matched self-paced
+ *  trial's duration). This removes all motor action from the colour-matching
+ *  condition while keeping delay durations identical across conditions.
+ *
+ *  Two things changed, nothing else:
+ *   1. makeDelayTrial(): yoked delay uses choices "NO_KEYS" + a dynamic
+ *      trial_duration = yokedScheduledDelay, and on_finish credits that exact
+ *      delay (not a time-out). Self-paced behaviour is untouched.
+ *   2. Colour-matching instruction text (Screen 3, yoked practice intro, yoked
+ *      block cue, recap) reworded to say the trial ends on its own at the match
+ *      and no button press is needed; the now-meaningless yoked-practice timing
+ *      feedback was removed.
+ *
+ *  The self-paced condition, reward scheme, yoking logic, data format, and
+ *  identity capture are all IDENTICAL to v1.
+ * ═══════════════════════════════════════════════════════════════════════
  *
  * ─────────────────────────────────────────────
  *  EASY-EDIT TIMING CONSTANTS  (change here only)
@@ -510,9 +538,18 @@ function makeDelayTrial() {
     type: jsPsychCanvasKeyboardResponse,
     canvas_size: [480, 480],
     stimulus: (canvas) => { renderDelay(canvas, state.hue, state.smallPolygonHue); },
-    choices: [' '],
+    // ── PILOT v2 CHANGE (colour-matching condition only) ──────────────
+    // Self-paced blocks: unchanged — the participant ends the delay with SPACE.
+    // Colour-matching (yoked) blocks: NO key press. The delay now terminates
+    // AUTOMATICALLY at the exact moment the outer colour matches the inner
+    // colour (== state.yokedScheduledDelay). This keeps the delay duration
+    // identical to the matched self-paced trial while removing all motor action
+    // from the colour-matching condition.
+    choices: () => (state.conditionType === 'yoked' ? "NO_KEYS" : [' ']),
     response_ends_trial: true,
-    trial_duration: MAX_DELAY_MS,  // auto-terminate after 10 seconds
+    trial_duration: () => (state.conditionType === 'yoked'
+      ? Math.min(state.yokedScheduledDelay * 1000, MAX_DELAY_MS)  // auto-end at the colour match
+      : MAX_DELAY_MS),                                            // self-paced: 10 s safety cap
     on_load: () => {
       const canvas = getCanvas();
       if (!canvas) return;
@@ -530,12 +567,20 @@ function makeDelayTrial() {
     },
     on_finish: (data) => {
       runCleanup();
-      // If rt is null, the trial timed out (participant did not press SPACE within MAX_DELAY_MS)
-      const timedOut = (data.rt === null || data.rt === undefined);
-      const elapsed = timedOut
-        ? MAX_DELAY_MS / 1000
-        : data.rt / 1000;
-      endDelay(elapsed, timedOut);
+      if (state.conditionType === 'yoked') {
+        // PILOT v2: colour-matching trials auto-terminate exactly at the match.
+        // The credited delay equals the scheduled (matched) delay, and this is
+        // NOT a time-out — the colours genuinely met at this moment.
+        endDelay(state.yokedScheduledDelay, false);
+      } else {
+        // Self-paced: unchanged. If rt is null the trial timed out (participant
+        // did not press SPACE within MAX_DELAY_MS).
+        const timedOut = (data.rt === null || data.rt === undefined);
+        const elapsed = timedOut
+          ? MAX_DELAY_MS / 1000
+          : data.rt / 1000;
+        endDelay(elapsed, timedOut);
+      }
     },
   };
 }
@@ -713,25 +758,18 @@ function makeFeedbackTrial() {
       let msg;
       if (state.conditionType === 'self_paced' && rew.d < REWARD.d_min)
         msg = `${Math.round(e)} degrees difference.<br>No points: response was too early.`;
+      else if (state.conditionType === 'yoked' && rew.d < REWARD.d_min)
+        // PILOT v2: colour-matching trials end automatically, so a short delay is
+        // NOT the participant's doing — use neutral wording, no blame.
+        msg = `${Math.round(e)} degrees difference.<br>This colour-match was too short to earn points — no reward this trial.`;
       else if (e < 5)
         msg = `Great job!<br>${Math.round(e)} degrees difference.<br>You win ${Math.round(rew.total)} points`;
       else
         msg = `${Math.round(e)} degrees difference.<br>You win ${Math.round(rew.total)} points`;
 
-      // Practice-only colour-match feedback (yoked practice trials only)
-      if (state.isYokedPractice && state.yokedScheduledDelay !== null) {
-        const timingError = state.delayDuration - state.yokedScheduledDelay;
-        const absErr = Math.abs(timingError);
-        let timingMsg;
-        if (absErr < 0.15) {
-          timingMsg = `<br><br><em>Colour-match: excellent timing! You pressed ${absErr.toFixed(2)} s ${timingError < 0 ? 'before' : 'after'} the perfect match.</em>`;
-        } else if (timingError < 0) {
-          timingMsg = `<br><br><em>Colour-match: you pressed ${absErr.toFixed(2)} s <strong>before</strong> the colours matched. Try waiting a bit longer next time.</em>`;
-        } else {
-          timingMsg = `<br><br><em>Colour-match: you pressed ${absErr.toFixed(2)} s <strong>after</strong> the colours matched. Try responding a bit sooner next time.</em>`;
-        }
-        msg += timingMsg;
-      }
+      // PILOT v2: the old practice-only colour-match *timing* feedback has been
+      // removed. Colour-matching trials now terminate automatically at the match,
+      // so there is no press to score and the timing error is ~0 by construction.
 
       recordTrial({
         conditionType: state.conditionType, expBlock: state.expBlock,
@@ -828,7 +866,7 @@ function buildTimeline(jsPsych) {
     '<strong>• Confidence.</strong> If your wedge is narrow and it includes the correct angle, you earn bonus points. A wedge that\'s too wide earns little or no bonus.\n\n\n' +
     '<strong>Two types of blocks</strong>\n\n' +
     '<strong>SELF-PACED blocks.</strong> You decide when to respond. Press SPACE during the coloured circles when you want to report the rotation. Waiting longer = more points, <em>if you still remember the rotation well.</em>\n\n' +
-    '<strong>COLOUR-MATCHING blocks.</strong> Your task during the circles is to press SPACE when the outer (changing) circle\'s colour matches the inner (fixed) circle\'s colour. The longer the colour-match takes, the more points are at stake — but you also need to remember the rotation just as well, since you\'ll still be asked to report it afterwards.\n\n' +
+    '<strong>COLOUR-MATCHING blocks.</strong> Here you do <strong>not</strong> press any button during the circles. The outer (changing) circle\'s colour cycles on its own until it matches the inner (fixed) circle\'s colour, and at that exact moment the circles end <strong>automatically</strong> and you move on to report the rotation. You cannot control the timing — your only job is to keep the object\'s rotation in mind the whole time, because you\'ll be asked to report it as soon as the colours match.\n\n' +
     'Blocks alternate between these two types. You will be told at the start of each block which type it is.\n\n' +
     'Press <strong>Continue</strong> for a short practice.'
   ));
@@ -876,9 +914,8 @@ function buildTimeline(jsPsych) {
   timeline.push(makeTextTrial(
     '<strong>Practice — Colour-matching</strong>\n\n' +
     'Now 2 practice trials in the <strong>COLOUR-MATCHING</strong> condition.\n\n' +
-    'During the coloured circles, the inner (small) circle\'s colour stays fixed, while the outer (large) circle\'s colour cycles continuously. Your task is to press <strong>SPACE</strong> the moment the outer circle\'s colour matches the inner circle\'s colour.\n\n' +
-    'Remember to keep the object\'s rotation in mind — you\'ll still be asked to report it afterwards.\n\n' +
-    'In these practice trials only, you will get feedback on how close you were to the perfect colour-match moment. <strong>This feedback will not appear in the main experiment</strong>, so use these trials to learn the timing.\n\n' +
+    'During the coloured circles, the inner (small) circle\'s colour stays fixed, while the outer (large) circle\'s colour cycles continuously. You do <strong>not</strong> press anything during this period: the moment the outer circle\'s colour matches the inner circle\'s colour, the circles end <strong>automatically</strong> and you move on.\n\n' +
+    'Your only job is to keep the object\'s rotation in mind — you\'ll be asked to report it as soon as the colours match.\n\n' +
     'Press <strong>Continue</strong> to start.'
   ));
 
@@ -932,9 +969,9 @@ function buildTimeline(jsPsych) {
     'You are now ready to begin the main experiment. From this point on, all trials count toward your points.\n\n' +
     '<strong>Quick recap:</strong>\n' +
     '• Each trial starts with a + sign, then an object appears briefly.\n' +
-    '• During the coloured circles, press <strong>SPACE</strong>:\n' +
-    '   – In <strong>self-paced</strong> blocks, whenever you want to report the rotation (waiting longer earns more points).\n' +
-    '   – In <strong>colour-matching</strong> blocks, the moment the two circles\' colours match.\n' +
+    '• During the coloured circles:\n' +
+    '   – In <strong>self-paced</strong> blocks, press <strong>SPACE</strong> whenever you want to report the rotation (waiting longer earns more points).\n' +
+    '   – In <strong>colour-matching</strong> blocks, you do nothing — the circles end <strong>automatically</strong> the moment the two circles\' colours match.\n' +
     '• Rotate the object back to its <strong>exact original angle</strong> using the buttons, then press SPACE.\n' +
     '• Set your wedge to honestly reflect how confident you are.\n\n' +
     'Blocks alternate self-paced and colour-matching. You will be told which type each block is.\n\n' +
@@ -956,8 +993,8 @@ function buildTimeline(jsPsych) {
           </div>`
         : `<div class="instructions"><strong>COLOUR-MATCHING BLOCK</strong><br><br>
             Remember the rotation of each object.<br><br>
-            During the coloured circles, press <strong>SPACE</strong> the moment you think the outer (changing) circle's colour matches the inner (fixed) circle's colour. The outer circle's colour cycles continuously, so respond as soon as you see the match.<br><br>
-            You will still be asked to report the object's rotation afterwards, so keep it in mind.<br><br>
+            During the coloured circles you do <strong>not</strong> press anything. The outer (changing) circle's colour cycles until it matches the inner (fixed) circle's colour, and at that moment the circles end <strong>automatically</strong>.<br><br>
+            You will then be asked to report the object's rotation, so keep it in mind throughout.<br><br>
             Press <strong>Start block</strong> when ready.
           </div>`,
       choices: ['Start block'],
@@ -993,6 +1030,68 @@ function buildTimeline(jsPsych) {
 }
 
 /** ─────────────────────────────────────────────
+ *  PARTICIPANT / SESSION IDENTITY CAPTURE
+ *  ---------------------------------------------------------------
+ *  Reads identifiers from the URL the participant ALREADY arrived with.
+ *  This is completely passive — it requires NOTHING extra from the
+ *  participant (no typing, no clicks, no extra screen). It just inspects
+ *  window.location, which already contains the token/Prolific parameters
+ *  that Experiment Factory / Prolific put there.
+ *
+ *  Captured (whatever is present):
+ *    - every URL query parameter, verbatim (url_params) — so the token is
+ *      preserved regardless of what the parameter is named
+ *    - convenience aliases for the common identifiers (token, prolific_pid…)
+ *    - full URL + referrer + user agent as an audit-trail fallback
+ *
+ *  Captured at SCRIPT LOAD (below), i.e. as early as possible, so the
+ *  identifiers are grabbed before any later navigation/redirect could drop
+ *  them from the address bar.
+ * ───────────────────────────────────────────── */
+const sessionInfo = {};
+function captureSessionInfo() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const urlParams = {};
+    for (const [k, v] of params.entries()) urlParams[k] = v;
+
+    // case-insensitive lookup helper
+    const lower = {};
+    for (const k in urlParams) lower[k.toLowerCase()] = urlParams[k];
+    const pick = (...names) => {
+      for (const n of names) if (lower[n] !== undefined && lower[n] !== '') return lower[n];
+      return null;
+    };
+
+    // Fallback: Experiment Factory may put the subject/token on a path segment
+    // (e.g. /experiments/<exp>/<token>). Grab a long-ish trailing segment.
+    let pathToken = null;
+    const segs = window.location.pathname.split('/').filter(Boolean);
+    if (segs.length) {
+      const last = segs[segs.length - 1];
+      if (/^[A-Za-z0-9_-]{6,}$/.test(last)) pathToken = last;
+    }
+
+    Object.assign(sessionInfo, {
+      token:        pick('token', 'subject', 'subid', 'sub', 'participant', 'id') || pathToken,
+      prolific_pid: pick('prolific_pid', 'prolificpid', 'pid'),
+      study_id:     pick('study_id', 'studyid'),
+      session_id:   pick('session_id', 'sessionid'),
+      url_params:   urlParams,
+      full_url:     window.location.href,
+      referrer:     document.referrer || null,
+      user_agent:   navigator.userAgent,
+      start_time_iso: new Date().toISOString(),
+    });
+  } catch (e) {
+    sessionInfo.capture_error = String(e);
+  }
+  return sessionInfo;
+}
+// Run immediately on load so identifiers are captured before any redirect.
+captureSessionInfo();
+
+/** ─────────────────────────────────────────────
  *  DATA SAVING  (jQuery $.ajax pattern — matches d2 test example exactly)
  *  1. POSTs data to /save with URL-encoded body { data: <json string> }
  *  2. On success, POSTs to /next so Experiment Factory marks the session
@@ -1019,6 +1118,7 @@ function saveDataToServer(jsPsych) {
   // Serialize the data in a promise, matching d2 pattern
   var promise = new Promise(function(resolve, reject) {
     var data = JSON.stringify({
+      sessionInfo: sessionInfo,                    // ← identity captured from the URL (token, Prolific IDs, …)
       jsPsychData: jsPsych.data.get().values(),
       trialData: trialData,
       allObjectRows: state.allObjectRows,
@@ -1077,6 +1177,14 @@ window.runExperiment = function() {
       // Sends data to Experiment Factory's /save endpoint.
       saveDataToServer(jsPsych);
     },
+  });
+  // Stamp the captured identity onto every jsPsych data row as well, so the
+  // identifiers survive even if only the jsPsych log is inspected.
+  jsPsych.data.addProperties({
+    token: sessionInfo.token,
+    prolific_pid: sessionInfo.prolific_pid,
+    study_id: sessionInfo.study_id,
+    session_id: sessionInfo.session_id,
   });
   jsPsych.run(buildTimeline(jsPsych));
 };
