@@ -622,10 +622,22 @@ function makeResponseTrial() {
       }
       function onUp() { leftHeld = false; rightHeld = false; state.rotKeySpeed = ROT_INITIAL_SPEED; }
 
+      // The object must actually be rotated before SPACE can confirm the trial.
+      // Swallow SPACE (capture phase, before jsPsych's keyboard listener sees it)
+      // while the orientation is still exactly the random starting offset, so the
+      // reported orientation is always a deliberate response.
+      function onConfirmKey(e) {
+        if (e.key !== ' ') return;
+        if (state.thisOriT1 !== state.adjustmentStartOri) return;
+        e.preventDefault();
+        e.stopImmediatePropagation();
+      }
+
       document.addEventListener('mousedown', onDown);
       document.addEventListener('mouseup', onUp);
       document.addEventListener('touchstart', onDown, {passive: false});
       document.addEventListener('touchend', onUp);
+      window.addEventListener('keydown', onConfirmKey, true);
 
       canvas._cancelResp = () => {
         cancelAnimationFrame(animId);
@@ -633,6 +645,7 @@ function makeResponseTrial() {
         document.removeEventListener('mouseup', onUp);
         document.removeEventListener('touchstart', onDown);
         document.removeEventListener('touchend', onUp);
+        window.removeEventListener('keydown', onConfirmKey, true);
       };
       registerCleanup(canvas._cancelResp);
 
@@ -641,7 +654,7 @@ function makeResponseTrial() {
       btnDiv.className = 'arrow-buttons';
       btnDiv.innerHTML = `
         <button class="arrow-btn" data-dir="left">&#9664; Left</button>
-        <span class="arrow-hint">Hold to rotate &middot; SPACE to confirm</span>
+        <span class="arrow-hint">Rotate the object, then SPACE to confirm</span>
         <button class="arrow-btn" data-dir="right">Right &#9654;</button>`;
       container.appendChild(btnDiv);
       canvas._btnDiv = btnDiv;
