@@ -39,100 +39,93 @@ const IMAGE_DURATION_MS     = 800;    // object presentation duration (ms)
 const MAX_DELAY_MS          = 10000;  // maximum delay before auto-termination (ms)
 
 /** ─────────────────────────────────────────────
- *  STIMULUS LIST  (432 actual image filenames)
+ *  STIMULUS LIST  (386 actual image filenames)
  * ───────────────────────────────────────────── */
 const STIMULI = [
   "witchhat.png","goose.png","golfclubs.png","goldcup.png","goblet.png",
   "globe.png","glasscup.png","glasscontainer.png","glassbottle.png","glass2.png",
   "glass.png","giftribbon.png","garlicpress.png","gardeningrak.png","garbagebin2.png",
-  "garbagebag.png","fanStanding.png","fan.png","eyedrops2.png","exit.png",
-  "excersiceequipment.png","exactoknife.png","drinkingpitcher.png","drinkingbottle.png","drinkglass.png",
-  "dresser.png","dress.png","doublehook.png","doorhandle.png","door.png",
-  "doll.png","dog.png","dishwashingsoap.png","portablepotty.png","quilt.png",
-  "promdress.png","rake.png","punchingbag3.png","railwaysign.png","rasor.png",
-  "purse.png","postalmailbox.png","punchingbag2.png","rake2.png","broom.png",
-  "adjustable.png","africanmask.png","alarmclock.png","amphora.png","anchor.png",
-  "angelstatue.png","arch2.png","artichoke.png","asparagus.png","avocado.png",
+  "fanStanding.png","eyedrops2.png","exit.png","excersiceequipment.png","exactoknife.png",
+  "drinkingpitcher.png","drinkingbottle.png","drinkglass.png","dresser.png","dress.png",
+  "doublehook.png","doorhandle.png","doll.png","dog.png","dishwashingsoap.png",
+  "portablepotty.png","promdress.png","rake.png","punchingbag3.png","railwaysign.png",
+  "rasor.png","purse.png","postalmailbox.png","punchingbag2.png","rake2.png",
+  "broom.png","adjustable.png","africanmask.png","alarmclock.png","amphora.png",
+  "anchor.png","angelstatue.png","arch2.png","artichoke.png","asparagus.png",
   "axe.png","babybottle.png","baloon.png","barbie.png","barrel2.png",
   "baseballbat.png","candle.png","carrots.png","deskchair.png","airfreshener.png",
   "bag.png","barchair.png","barchair2.png","basket.png","bathrobe.png",
-  "bathroomsink.png","battery.png","beaver.png","beerbottle.png","beermug.png",
-  "bell2.png","beverage.png","bib.png","bikepump.png","bin.png",
-  "birdcage2.png","birdhouse.png","birdhouse2.png","bishop.png","blender.png",
-  "bloodorange.png","bottle.png","bowloffruit.png","boxcutter.png","boxinggloves.png",
-  "broccoli.png","brochette.png","brush.png","bucket.png","buddha.png",
-  "building.png","bunnytoy.png","cactus.png","carseat.png","cheesegreater.png",
-  "closedumbrella.png","bullet.png","cabinet.png","cake.png","calculator.png",
-  "candle2.png","candles.png","candlestick.png","candyjar.png","cane.png",
-  "canister.png","carkey.png","carrot.png","castletower.png","celery.png",
-  "cello.png","chairs.png","champane.png","cherry.png","chessknight.png",
-  "chicken.png","childbed.png","chocolatemilk.png","christmasslightbulb.png","christmasstree.png",
-  "christmasstree2.png","clarinet.png","cleaningbrush.png","closet.png","clothespin.png",
-  "clover.png","coathanger.png","coctailumbrella.png","codedoorlock.png","coffeemaker.png",
-  "cookiecutter.png","danger.png","lamp.png","cobra.png","coffeemug2.png",
-  "comb.png","combRegular.png","compass.png","computermouse.png","concreteblock.png",
-  "cone.png","crotches.png","cucumber.png","cup.png","curtain2.png",
-  "daquiri.png","dart.png","die.png","drum.png","drumsticks.png",
-  "dryflowers.png","dumbell.png","duster.png","dustpan.png","dynamite.png",
-  "earexam.png","earring.png","earsirynge.png","eggcup.png","icecream.png",
-  "jacket.png","duck.png","eagle.png","egret.png","eiffeltower.png",
-  "electricguitar.png","emergency.png","icecreamcone.png","ironning.png","jarofcapers.png",
-  "jeans.png","jesusstatue.png","juice.png","kangaroo.png","ketchup.png",
-  "kettle.png","key.png","keychain.png","kidstoyrings.png","kitchenaid.png",
-  "knifeRegular.png","knitteddoll.png","ladle.png","lantern.png","leaf.png",
-  "leek.png","legcast.png","legoman.png","lighthouse.png","makeupbrush.png",
-  "mountaingoat.png","nasalspray.png","easel.png","easteregg.png","feather.png",
-  "fighter.png","filescabinet.png","fireextinguisher.png","flower.png","foodblender.png",
-  "foot.png","fridge2.png","guitar.png","harp.png","lightbulb2.png",
-  "lighter.png","lipstick.png","livingroomlamp.png","lockerdoor.png","lollipop.png",
-  "mailbox.png","maplesyrup.png","marbles.png","masher.png","maskara.png",
-  "match.png","medal.png","menorah.png","mic.png","microphone.png",
-  "microscope.png","milkjug2.png","milkshake.png","minitree.png","mixinghook.png",
-  "mug.png","musicstand.png","opener2.png","suit.png","fence.png",
-  "flashlight.png","footballball2.png","fork.png","fullbucket.png","funnel.png",
-  "galloncontainer.png","granade.png","hoodie.png","moneyjar.png","nail.png",
-  "nailpolish2.png","nunchaku.png","ornament.png","ostrich.png","ovenmit.png",
-  "pacifier.png","padlock.png","pager.png","paintbrush2.png","paintbucket.png",
-  "palmtree.png","pan.png","paperbag.png","paperclip.png","grater.png",
-  "gravestone.png","grocerybag.png","gumballmachine.png","hairbrush.png","haircomb.png",
-  "hammer.png","hamper.png","handpuppet.png","headphones.png","herbbag.png",
-  "hook.png","hotpepper.png","paintroller.png","papertowel.png","parfait.png",
-  "parkingmeter2.png","parsley.png","partyhat.png","payphone.png","pealer.png",
-  "pealer2.png","pear.png","pen.png","pencils.png","pepper.png",
-  "perfumebottle.png","phone.png","pickles.png","pin.png","pitcher.png",
-  "plant.png","popsicle.png","trophy2.png","hotairbaloon.png","hotdog.png",
+  "bathroomsink.png","beaver.png","beerbottle.png","beermug.png","bell2.png",
+  "beverage.png","bib.png","bin.png","birdcage2.png","birdhouse.png",
+  "birdhouse2.png","bishop.png","blender.png","bloodorange.png","bottle.png",
+  "bowloffruit.png","boxcutter.png","boxinggloves.png","broccoli.png","brush.png",
+  "bucket.png","buddha.png","building.png","bunnytoy.png","cactus.png",
+  "carseat.png","cheesegreater.png","closedumbrella.png","bullet.png","cabinet.png",
+  "cake.png","calculator.png","candle2.png","candles.png","candlestick.png",
+  "candyjar.png","cane.png","canister.png","carkey.png","carrot.png",
+  "castletower.png","celery.png","cello.png","chairs.png","champane.png",
+  "cherry.png","chessknight.png","chicken.png","childbed.png","chocolatemilk.png",
+  "christmasslightbulb.png","christmasstree.png","christmasstree2.png","clarinet.png","cleaningbrush.png",
+  "clothespin.png","coctailumbrella.png","coffeemaker.png","cookiecutter.png","danger.png",
+  "lamp.png","cobra.png","coffeemug2.png","comb.png","compass.png",
+  "computermouse.png","cone.png","crotches.png","curtain2.png","daquiri.png",
+  "dart.png","die.png","drum.png","dryflowers.png","dumbell.png",
+  "duster.png","dustpan.png","dynamite.png","earexam.png","earring.png",
+  "earsirynge.png","eggcup.png","icecream.png","jacket.png","duck.png",
+  "eagle.png","egret.png","eiffeltower.png","electricguitar.png","emergency.png",
+  "icecreamcone.png","ironning.png","jarofcapers.png","jeans.png","jesusstatue.png",
+  "juice.png","kangaroo.png","ketchup.png","kettle.png","key.png",
+  "keychain.png","kidstoyrings.png","kitchenaid.png","knifeRegular.png","knitteddoll.png",
+  "ladle.png","lantern.png","leaf.png","leek.png","legcast.png",
+  "legoman.png","lighthouse.png","makeupbrush.png","mountaingoat.png","nasalspray.png",
+  "easel.png","feather.png","fighter.png","fireextinguisher.png","flower.png",
+  "foodblender.png","foot.png","guitar.png","harp.png","lightbulb2.png",
+  "lighter.png","lipstick.png","livingroomlamp.png","lollipop.png","mailbox.png",
+  "maplesyrup.png","marbles.png","masher.png","maskara.png","medal.png",
+  "menorah.png","mic.png","microphone.png","microscope.png","milkjug2.png",
+  "milkshake.png","minitree.png","mixinghook.png","mug.png","musicstand.png",
+  "opener2.png","suit.png","flashlight.png","fork.png","fullbucket.png",
+  "hoodie.png","moneyjar.png","nail.png","nailpolish2.png","ornament.png",
+  "ostrich.png","ovenmit.png","pacifier.png","padlock.png","pager.png",
+  "paintbrush2.png","paintbucket.png","palmtree.png","pan.png","paperbag.png",
+  "grater.png","gravestone.png","grocerybag.png","gumballmachine.png","hairbrush.png",
+  "haircomb.png","hammer.png","hamper.png","handpuppet.png","headphones.png",
+  "herbbag.png","hook.png","hotpepper.png","paintroller.png","papertowel.png",
+  "parfait.png","parkingmeter2.png","parsley.png","partyhat.png","payphone.png",
+  "pealer.png","pealer2.png","pear.png","pen.png","pencils.png",
+  "pepper.png","perfumebottle.png","phone.png","pickles.png","pin.png",
+  "pitcher.png","plant.png","popsicle.png","trophy2.png","hotairbaloon.png",
   "hotwaterbottle.png","hourglass.png","hydrant.png","peppermill.png","phonebooth.png",
-  "pictureframe.png","pieserver.png","pineapple.png","pinecone.png","pinguin.png",
-  "pintofbeer.png","pizzacutter.png","plant2.png","plier.png","redbull.png",
-  "remotecontrol.png","ribbon.png","rice.png","rocket.png","rose2.png",
-  "shavingmachine.png","rope.png","rose.png","roses.png","rubberboots.png",
-  "rug.png","safetypin.png","saltshaker.png","sandcastle.png","sauce.png",
-  "scissors.png","scooter.png","screw.png","screwdriver.png","screwdriver_round.png",
-  "seashell.png","secateurs.png","sharpknife.png","shaving.png","shipmodel.png",
-  "shirtskirt.png","shovel.png","shower.png","showerhead.png","sirynge.png",
-  "skirt.png","slippers.png","smallvase.png","spagetyserver.png","speaker.png",
-  "spraybottle.png","statue2.png","stringspool.png","skeleton.png","spatula.png",
-  "spicerack.png","spoon.png","spring.png","stepladder.png","stool.png",
-  "strawberry.png","streetlamp.png","streetpost.png","studentchair.png","suit2.png",
-  "suitcase.png","surfing.png","sword2.png","tabasco.png","teddybear.png",
-  "teepee.png","telephonebooth.png","tennisracket.png","testtube.png","thread.png",
-  "toiletbrush.png","toothpaste.png","trafficlight.png","tulip.png","thermiccup.png",
-  "thumbtack.png","tie.png","timepiece.png","toilet.png","toiletplung.png",
-  "toothbrush.png","totem.png","toyperson.png","trashbin.png","travelmug.png",
-  "tree.png","trickortreat.png","tripod.png","trumpet.png","tube.png",
-  "tweezers.png","umbrella.png","vampire.png","vase2.png","vase3.png",
-  "walker.png","watch2.png","waterbottle.png","watercooler.png","waterjub.png",
-  "well.png","winebottle2.png","beachpail.png","beachumbrella.png","seahorse.png",
-  "soapbottle.png","walkietalkie.png","wardrobe.png","washer.png","watercan.png",
-  "waterkettle.png","weddingcake.png","wetsuit.png","wickchair.png","windchimes.png",
-  "wineglass.png","winterglove.png","wintersock.png","woodenhammer.png","woodenspoons.png",
-  "zucchini.png"
+  "pieserver.png","pineapple.png","pinecone.png","pinguin.png","pintofbeer.png",
+  "pizzacutter.png","plant2.png","plier.png","redbull.png","remotecontrol.png",
+  "ribbon.png","rice.png","rocket.png","rose2.png","shavingmachine.png",
+  "rope.png","rose.png","roses.png","rubberboots.png","safetypin.png",
+  "saltshaker.png","sandcastle.png","sauce.png","scissors.png","scooter.png",
+  "screw.png","screwdriver.png","screwdriver_round.png","seashell.png","secateurs.png",
+  "sharpknife.png","shaving.png","shipmodel.png","shirtskirt.png","shovel.png",
+  "shower.png","showerhead.png","sirynge.png","skirt.png","slippers.png",
+  "smallvase.png","spagetyserver.png","speaker.png","spraybottle.png","statue2.png",
+  "stringspool.png","skeleton.png","spatula.png","spicerack.png","spoon.png",
+  "stepladder.png","stool.png","strawberry.png","streetlamp.png","streetpost.png",
+  "studentchair.png","suit2.png","suitcase.png","surfing.png","sword2.png",
+  "tabasco.png","teddybear.png","teepee.png","telephonebooth.png","tennisracket.png",
+  "testtube.png","thread.png","toiletbrush.png","toothpaste.png","trafficlight.png",
+  "tulip.png","thermiccup.png","thumbtack.png","tie.png","timepiece.png",
+  "toilet.png","toiletplung.png","toothbrush.png","totem.png","toyperson.png",
+  "trashbin.png","travelmug.png","tree.png","trickortreat.png","tripod.png",
+  "trumpet.png","tube.png","tweezers.png","umbrella.png","vampire.png",
+  "vase2.png","vase3.png","walker.png","waterbottle.png","watercooler.png",
+  "waterjub.png","well.png","winebottle2.png","beachpail.png","beachumbrella.png",
+  "seahorse.png","soapbottle.png","walkietalkie.png","wardrobe.png","washer.png",
+  "watercan.png","waterkettle.png","weddingcake.png","wetsuit.png","wickchair.png",
+  "windchimes.png","wineglass.png","winterglove.png","wintersock.png","woodenhammer.png",
+  "woodenspoons.png"
 ];
 
 /** ─────────────────────────────────────────────
  *  EXPERIMENT PARAMETERS
  * ───────────────────────────────────────────── */
-const N_TOTAL_OBJECTS     = STIMULI.length;  // 421 after removing symmetric images
+const N_TOTAL_OBJECTS     = STIMULI.length;  // 386 after removing symmetric and 180deg-ambiguous images
 const TRIALS_PER_BLOCK    = 20;
 const N_SELF_PACED_BLOCKS = 6;               // 6 SP + 6 yoked = 12 total, 240 trials
 const N_TOTAL_BLOCKS      = N_SELF_PACED_BLOCKS * 2;
@@ -712,10 +705,22 @@ function makeConfidenceTrial() {
       }
       function onUp() { widerHeld = false; narrowerHeld = false; state.confKeySpeed = ROT_INITIAL_SPEED; }
 
+      // The wedge must actually be opened before SPACE can confirm the trial.
+      // Swallow SPACE (capture phase, before jsPsych's keyboard listener sees it)
+      // while the wedge still has zero width, so confidenceWedgeWidth > 0 on every
+      // trial and participants cannot skip the confidence step.
+      function onConfirmKey(e) {
+        if (e.key !== ' ') return;
+        if (Math.abs(state.confidenceOri1 - state.confidenceOri2) > 0) return;
+        e.preventDefault();
+        e.stopImmediatePropagation();
+      }
+
       document.addEventListener('mousedown', onDown);
       document.addEventListener('mouseup', onUp);
       document.addEventListener('touchstart', onDown, {passive: false});
       document.addEventListener('touchend', onUp);
+      window.addEventListener('keydown', onConfirmKey, true);
 
       canvas._cancelConf = () => {
         cancelAnimationFrame(animId);
@@ -723,6 +728,7 @@ function makeConfidenceTrial() {
         document.removeEventListener('mouseup', onUp);
         document.removeEventListener('touchstart', onDown);
         document.removeEventListener('touchend', onUp);
+        window.removeEventListener('keydown', onConfirmKey, true);
       };
       registerCleanup(canvas._cancelConf);
 
