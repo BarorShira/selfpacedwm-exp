@@ -737,7 +737,7 @@ function makeConfidenceTrial() {
       btnDiv.className = 'arrow-buttons';
       btnDiv.innerHTML = `
         <button class="arrow-btn" data-conf="narrower">&#9660; Narrower</button>
-        <span class="arrow-hint">Hold to adjust &middot; SPACE to confirm</span>
+        <span class="arrow-hint">Adjust the wedge, then SPACE to confirm</span>
         <button class="arrow-btn" data-conf="wider">Wider &#9650;</button>`;
       container.appendChild(btnDiv);
       canvas._btnDiv = btnDiv;
