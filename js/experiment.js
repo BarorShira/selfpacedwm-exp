@@ -30,13 +30,28 @@
  *  identity capture are all IDENTICAL to v1.
  * ═══════════════════════════════════════════════════════════════════════
  *
+ *  PILOT 4 CHANGES (on top of the pilot-3 build), nothing else:
+ *   1. Confidence wedge must be at least MIN_CONF_WEDGE_DEG (2°) wide before
+ *      SPACE is accepted, and narrowing can no longer go below that width.
+ *   2. Self-paced time limit raised from 10 s to 12 s (MAX_DELAY_MS).
+ *   3. Trials that reach the time limit earn no points (base and confidence
+ *      bonus both 0, like too-early trials). Self-paced: the participant did not
+ *      press SPACE in time; colour-matching: the replayed delay was the full
+ *      limit. Feedback says so (neutral wording for colour-matching).
+ *      Instructions mention the rule.
+ *   4. Delay score D(d) now reaches its maximum at the time limit
+ *      (REWARD.D_max = MAX_DELAY_MS / 1000 = 12 s, was 10 s) in both conditions.
+ *   5. confidenceWedgeWidth is logged as a proper angle (clamped to 0–360°),
+ *      and the wedge itself stops widening at 360° (it can always be narrowed).
+ * ═══════════════════════════════════════════════════════════════════════
+ *
  * ─────────────────────────────────────────────
  *  EASY-EDIT TIMING CONSTANTS  (change here only)
  * ─────────────────────────────────────────────
  */
 const FIXATION_DURATION_MS  = 1500;   // fixation cross duration (ms)
 const IMAGE_DURATION_MS     = 800;    // object presentation duration (ms)
-const MAX_DELAY_MS          = 10000;  // maximum delay before auto-termination (ms)
+const MAX_DELAY_MS          = 12000;  // maximum delay before auto-termination (ms) — pilot 4: 12 s (was 10 s)
 
 /** ─────────────────────────────────────────────
  *  STIMULUS LIST  (386 actual image filenames)
@@ -135,7 +150,7 @@ const HUE_CYCLE_DURATION  = 6.0;
 const DEFAULT_HUE_SPEED   = 1.0 / HUE_CYCLE_DURATION;
 
 const REWARD = {
-  theta: 15.0, alpha: 2.0, D_max: 10.0, d_min: 1.25,
+  theta: 15.0, alpha: 2.0, D_max: MAX_DELAY_MS / 1000, d_min: 1.25,   // pilot 4: D maxes at the 12 s limit (was 10)
   tau: 1.2, B: 10.0, w_max: 25.0, gamma: 1.0,
 };
 
@@ -143,6 +158,7 @@ const ROT_INCREASE_PER_FRAME = 0.0001;  // matches PsychoPy increasePerFrame
 const ROT_MAX_SPEED          = 5.0;     // matches PsychoPy keySpeed > 5 cap
 const ROT_INITIAL_SPEED      = 1.0;     // matches PsychoPy keySpeed = 1
 const MIN_WEDGE_GAP          = 0.7;
+const MIN_CONF_WEDGE_DEG     = 2.0;   // pilot 4: minimum confidence wedge (full width, deg) before SPACE is accepted
 
 /** ─────────────────────────────────────────────
  *  UTILITY FUNCTIONS
@@ -240,7 +256,7 @@ function imagePath(row) {
 /** ─────────────────────────────────────────────
  *  REWARD CALCULATION
  * ───────────────────────────────────────────── */
-function computeReward(e, delayDuration, yokedScheduledDelay, conditionType, confidenceWedgeWidth) {
+function computeReward(e, delayDuration, yokedScheduledDelay, conditionType, confidenceWedgeWidth, limitReached) {
   let d_credit_raw;
   if (conditionType === 'self_paced') d_credit_raw = delayDuration;
   else if (conditionType === 'yoked') d_credit_raw = Math.min(delayDuration, yokedScheduledDelay);
@@ -256,13 +272,30 @@ function computeReward(e, delayDuration, yokedScheduledDelay, conditionType, con
   let A = 0, accuracyEligible = 0;
   if (e < REWARD.theta) { accuracyEligible = 1; A = 1 - Math.pow(e / REWARD.theta, REWARD.alpha); }
 
-  const R_base = 100 * accuracyEligible * A * D;
+  // Pilot 4: a trial that reached the time limit earns nothing (base and
+  // confidence bonus), like a too-early response — in both conditions (see
+  // limitReachedThisTrial()). A and D are still computed and logged as usual;
+  // only the points are zeroed.
+  const cappedPenalty = !!limitReached;
+
+  const R_base = cappedPenalty ? 0 : 100 * accuracyEligible * A * D;
   const w = Math.min(Math.max(confidenceWedgeWidth / 2.0, 0), REWARD.w_max);
   let R_conf = 0;
-  if (e <= w && e < REWARD.theta && d >= REWARD.d_min)
+  if (!cappedPenalty && e <= w && e < REWARD.theta && d >= REWARD.d_min)
     R_conf = REWARD.B * (1 - Math.pow(w / REWARD.w_max, REWARD.gamma));
 
   return { d, d_credit_raw, D, A, R_base, R_conf, total: R_base + R_conf, w };
+}
+
+// Pilot 4: did this trial's delay reach the time limit?
+// Self-paced: the participant did not press SPACE before MAX_DELAY_MS.
+// Colour-matching: the replayed delay is the full limit, i.e. its matched
+// self-paced trial timed out (a pressed self-paced delay is always < the limit).
+function limitReachedThisTrial() {
+  if (state.conditionType === 'self_paced') return !!state.delayTimedOut;
+  if (state.conditionType === 'yoked')
+    return state.yokedScheduledDelay !== null && state.yokedScheduledDelay >= MAX_DELAY_MS / 1000;
+  return false;
 }
 
 /** ─────────────────────────────────────────────
@@ -542,7 +575,7 @@ function makeDelayTrial() {
     response_ends_trial: true,
     trial_duration: () => (state.conditionType === 'yoked'
       ? Math.min(state.yokedScheduledDelay * 1000, MAX_DELAY_MS)  // auto-end at the colour match
-      : MAX_DELAY_MS),                                            // self-paced: 10 s safety cap
+      : MAX_DELAY_MS),                                            // self-paced: 12 s time limit (no points if reached)
     on_load: () => {
       const canvas = getCanvas();
       if (!canvas) return;
@@ -693,12 +726,24 @@ function makeConfidenceTrial() {
           if (state.confKeySpeed > ROT_MAX_SPEED) state.confKeySpeed = ROT_INCREASE_PER_FRAME;
           state.confidenceOri1 -= state.confKeySpeed;
           state.confidenceOri2 += state.confKeySpeed;
+          // Pilot 4: widening stops at a full circle (360°).
+          if (state.confidenceOri2 - state.confidenceOri1 > 360) {
+            state.confidenceOri1 = state.responseOri - 180;
+            state.confidenceOri2 = state.responseOri + 180;
+          }
         } else if (narrowerHeld) {
-          if (angularDistance(state.confidenceOri1, state.confidenceOri2) > MIN_WEDGE_GAP) {
+          // Pilot 4: use the raw width (now bounded 0–360°). The wrapped angular
+          // distance reads a full-circle wedge as ~0°, which blocked narrowing.
+          if (state.confidenceOri2 - state.confidenceOri1 > MIN_WEDGE_GAP) {
             state.confKeySpeed += ROT_INCREASE_PER_FRAME;
             if (state.confKeySpeed > ROT_MAX_SPEED) state.confKeySpeed = ROT_INCREASE_PER_FRAME;
             state.confidenceOri1 += state.confKeySpeed;
             state.confidenceOri2 -= state.confKeySpeed;
+          }
+          // Pilot 4: narrowing stops at the minimum wedge width (no overshoot to ~0°).
+          if (state.confidenceOri2 - state.confidenceOri1 < MIN_CONF_WEDGE_DEG) {
+            state.confidenceOri1 = state.responseOri - MIN_CONF_WEDGE_DEG / 2;
+            state.confidenceOri2 = state.responseOri + MIN_CONF_WEDGE_DEG / 2;
           }
         } else {
           state.confKeySpeed = ROT_INITIAL_SPEED;
@@ -720,11 +765,11 @@ function makeConfidenceTrial() {
 
       // The wedge must actually be opened before SPACE can confirm the trial.
       // Swallow SPACE (capture phase, before jsPsych's keyboard listener sees it)
-      // while the wedge still has zero width, so confidenceWedgeWidth > 0 on every
-      // trial and participants cannot skip the confidence step.
+      // while the wedge is narrower than MIN_CONF_WEDGE_DEG (pilot 4: 2°), so
+      // confidenceWedgeWidth >= 2° on every trial.
       function onConfirmKey(e) {
         if (e.key !== ' ') return;
-        if (Math.abs(state.confidenceOri1 - state.confidenceOri2) > 0) return;
+        if (Math.abs(state.confidenceOri1 - state.confidenceOri2) >= MIN_CONF_WEDGE_DEG) return;
         e.preventDefault();
         e.stopImmediatePropagation();
       }
@@ -759,7 +804,10 @@ function makeConfidenceTrial() {
       runCleanup();
       const canvas = getCanvas();
       if (canvas && canvas._btnDiv) canvas._btnDiv.remove();
-      state.confidenceWedgeWidth = Math.abs(state.confidenceOri1 - state.confidenceOri2);
+      // Pilot 4: log a proper angle. The raw difference of the two edges keeps
+      // growing past a full circle if Wider is held; any wedge >= 360° covers
+      // the whole circle, so clamp to 360.
+      state.confidenceWedgeWidth = Math.min(Math.abs(state.confidenceOri1 - state.confidenceOri2), 360);
     },
   };
 }
@@ -770,12 +818,17 @@ function makeFeedbackTrial() {
     stimulus: () => {
       const e = angularDistance(state.responseOri, state.startOri1);
       const rew = computeReward(e, state.delayDuration, state.yokedScheduledDelay,
-                                state.conditionType, state.confidenceWedgeWidth);
+                                state.conditionType, state.confidenceWedgeWidth, limitReachedThisTrial());
       state.winningPoints = rew.total;
       state.blockPoints  += rew.total;
 
       let msg;
-      if (state.conditionType === 'self_paced' && rew.d < REWARD.d_min)
+      if (state.conditionType === 'self_paced' && state.delayTimedOut)
+        msg = `${Math.round(e)} degrees difference.<br>No points this time: the ${MAX_DELAY_MS / 1000}-second limit was reached.<br>Please remember to press SPACE before the time runs out!`;
+      else if (state.conditionType === 'yoked' && limitReachedThisTrial())
+        // Not the participant's doing — neutral wording, as for short colour-matches.
+        msg = `${Math.round(e)} degrees difference.<br>This colour-match ran for the full ${MAX_DELAY_MS / 1000} seconds and reached the time limit, so there is no reward this trial.`;
+      else if (state.conditionType === 'self_paced' && rew.d < REWARD.d_min)
         msg = `${Math.round(e)} degrees difference.<br>No points: response was too early.`;
       else if (state.conditionType === 'yoked' && rew.d < REWARD.d_min)
         // PILOT v2: colour-matching trials end automatically, so a short delay is
@@ -798,7 +851,7 @@ function makeFeedbackTrial() {
         imageDurationMs: IMAGE_DURATION_MS,            // fixed timing parameter
         maxDelayMs: MAX_DELAY_MS,                       // fixed timing parameter
         startOri1: state.startOri1, delayDuration: state.delayDuration,
-        delayTimedOut: state.delayTimedOut,            // true if trial hit 10s cap
+        delayTimedOut: state.delayTimedOut,            // true if trial hit the 12 s limit (self-paced: no points)
         yokedScheduledDelay: state.yokedScheduledDelay,
         smallPolygonHue: state.smallPolygonHue,        // inner-circle hue this trial
         targetHue: state.targetHue,                    // target outer hue (for yoked) / inner hue carried over (for SP)
@@ -881,11 +934,11 @@ function buildTimeline(jsPsych) {
     '<strong>How points work</strong>\n\n' +
     'You earn points on each trial based on three things:\n\n' +
     '<strong>• Accuracy.</strong> The closer your rotation is to the original, the more points. Errors larger than about 15 degrees earn nothing.\n\n' +
-    '<strong>• Time held in memory.</strong> You earn more points the longer you successfully held the object\'s rotation in mind before answering. Very fast responses (under about 1.25 seconds) earn no points.\n\n' +
+    '<strong>• Time held in memory.</strong> You earn more points the longer you successfully held the object\'s rotation in mind before answering. Very fast responses (under about 1.25 seconds) earn no points. In self-paced blocks there is also a time limit of ' + (MAX_DELAY_MS / 1000) + ' seconds: if it is reached before you press SPACE, the trial earns <strong>no points</strong>, so make sure to respond before then.\n\n' +
     '<strong>• Confidence.</strong> If your wedge is narrow and it includes the correct angle, you earn bonus points. A wedge that\'s too wide earns little or no bonus.\n\n\n' +
     '<strong>Two types of blocks</strong>\n\n' +
-    '<strong>SELF-PACED blocks.</strong> You decide when to respond. Press SPACE during the coloured circles when you want to report the rotation. Waiting longer = more points, <em>if you still remember the rotation well.</em>\n\n' +
-    '<strong>COLOUR-MATCHING blocks.</strong> Here you do <strong>not</strong> press any button during the circles. The outer (changing) circle\'s colour cycles on its own until it matches the inner (fixed) circle\'s colour, and at that exact moment the circles end <strong>automatically</strong> and you move on to report the rotation. You cannot control the timing — your only job is to keep the object\'s rotation in mind the whole time, because you\'ll be asked to report it as soon as the colours match.\n\n' +
+    '<strong>SELF-PACED blocks.</strong> You decide when to respond. Press SPACE during the coloured circles when you want to report the rotation. Waiting longer = more points, <em>if you still remember the rotation well</em> — but press SPACE before the ' + (MAX_DELAY_MS / 1000) + '-second limit, or the trial earns no points.\n\n' +
+    '<strong>COLOUR-MATCHING blocks.</strong> Here you do <strong>not</strong> press any button during the circles. The outer (changing) circle\'s colour cycles on its own until it matches the inner (fixed) circle\'s colour, and at that exact moment the circles end <strong>automatically</strong> and you move on to report the rotation. You cannot control the timing — your only job is to keep the object\'s rotation in mind the whole time, because you\'ll be asked to report it as soon as the colours match. If a colour-match runs for the full ' + (MAX_DELAY_MS / 1000) + ' seconds and reaches the time limit, that trial earns no points.\n\n' +
     'Blocks alternate between these two types. You will be told at the start of each block which type it is.\n\n' +
     'Press <strong>Continue</strong> for a short practice.'
   ));
@@ -989,7 +1042,7 @@ function buildTimeline(jsPsych) {
     '<strong>Quick recap:</strong>\n' +
     '• Each trial starts with a + sign, then an object appears briefly.\n' +
     '• During the coloured circles:\n' +
-    '   – In <strong>self-paced</strong> blocks, press <strong>SPACE</strong> whenever you want to report the rotation (waiting longer earns more points).\n' +
+    '   – In <strong>self-paced</strong> blocks, press <strong>SPACE</strong> whenever you want to report the rotation (waiting longer earns more points, but reaching the ' + (MAX_DELAY_MS / 1000) + '-second limit earns none).\n' +
     '   – In <strong>colour-matching</strong> blocks, you do nothing — the circles end <strong>automatically</strong> the moment the two circles\' colours match.\n' +
     '• Rotate the object back to its <strong>exact original angle</strong> using the buttons, then press SPACE.\n' +
     '• Set your wedge to honestly reflect how confident you are.\n\n' +
@@ -1008,12 +1061,14 @@ function buildTimeline(jsPsych) {
         ? `<div class="instructions"><strong>SELF-PACED BLOCK</strong><br><br>
             Remember the rotation of each object.<br><br>
             During the coloured circles, press <strong>SPACE</strong> whenever you want to report the remembered rotation. Waiting longer earns more points, but only if you still remember the rotation well.<br><br>
+            Please make sure to respond before the ${MAX_DELAY_MS / 1000}-second limit — trials that reach it earn no points.<br><br>
             Press <strong>Start block</strong> when ready.
           </div>`
         : `<div class="instructions"><strong>COLOUR-MATCHING BLOCK</strong><br><br>
             Remember the rotation of each object.<br><br>
             During the coloured circles you do <strong>not</strong> press anything. The outer (changing) circle's colour cycles until it matches the inner (fixed) circle's colour, and at that moment the circles end <strong>automatically</strong>.<br><br>
             You will then be asked to report the object's rotation, so keep it in mind throughout.<br><br>
+            If a colour-match runs for the full ${MAX_DELAY_MS / 1000} seconds and reaches the time limit, that trial earns no points.<br><br>
             Press <strong>Start block</strong> when ready.
           </div>`,
       choices: ['Start block'],
