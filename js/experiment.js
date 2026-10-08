@@ -932,9 +932,10 @@ function buildTimeline(jsPsych) {
   // ── Screen 3: Points and block types ──
   timeline.push(makeTextTrial(
     '<strong>How points work</strong>\n\n' +
+    '<strong>READ THE INSTRUCTIONS CAREFULLY!!</strong>\n\n' +
     'You earn points on each trial based on three things:\n\n' +
     '<strong>• Accuracy.</strong> The closer your rotation is to the original, the more points. Errors larger than about 15 degrees earn nothing.\n\n' +
-    '<strong>• Time held in memory.</strong> You earn more points the longer you successfully held the object\'s rotation in mind before answering. Very fast responses (under about 1.25 seconds) earn no points. In self-paced blocks there is also a time limit of ' + (MAX_DELAY_MS / 1000) + ' seconds: if it is reached before you press SPACE, the trial earns <strong>no points</strong>, so make sure to respond before then.\n\n' +
+    '<strong>• Time held in memory.</strong> You earn more points the longer you successfully held the object\'s rotation in mind before answering. Very fast responses (under about 1.25 seconds) earn no points. In self-paced blocks there is also a time limit of ' + (MAX_DELAY_MS / 1000) + ' seconds. If it is reached before you press SPACE, the trial earns <strong>no points</strong>, so make sure to respond before then.\n\n' +
     '<strong>• Confidence.</strong> If your wedge is narrow and it includes the correct angle, you earn bonus points. A wedge that\'s too wide earns little or no bonus.\n\n\n' +
     '<strong>Two types of blocks</strong>\n\n' +
     '<strong>SELF-PACED blocks.</strong> You decide when to respond. Press SPACE during the coloured circles when you want to report the rotation. Waiting longer = more points, <em>if you still remember the rotation well</em> — but press SPACE before the ' + (MAX_DELAY_MS / 1000) + '-second limit, or the trial earns no points.\n\n' +
