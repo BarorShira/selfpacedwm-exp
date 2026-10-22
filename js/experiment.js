@@ -57,6 +57,8 @@
  *   5. Object presentation shortened from 800 ms to 500 ms (IMAGE_DURATION_MS),
  *      as for the rotated objects in Yizhar et al. (2026, Spitzer lab).
  *   6. No long dashes anywhere in the participant-facing text.
+ *   7. Welcome screen duration updated to "about 80 to 120 minutes" (was
+ *      60 to 90; pilot 4 median was 89 min, range 49-116).
  * ═══════════════════════════════════════════════════════════════════════
  *
  *  PILOT 4 CHANGES (on top of the pilot-3 build), nothing else:
@@ -950,7 +952,7 @@ function buildTimeline(jsPsych) {
   timeline.push(makeTextTrial(
     '<strong>Welcome!</strong>\n\n' +
     'In this experiment, you will see everyday objects on the screen, and your task will be to remember their orientation, that is, how each object is rotated, like the hands of a clock.\n\n' +
-    'The experiment is divided into 12 blocks of 20 trials each. It takes about 60 to 90 minutes to complete.\n\n' +
+    'The experiment is divided into 12 blocks of 20 trials each. It takes about 80 to 120 minutes to complete.\n\n' +
     'You will earn points based on how well you remember and how confident you are in your answer. Please give it your full attention.\n\n' +
     'Press <strong>Continue</strong> to see what a single trial looks like.'
   ));
