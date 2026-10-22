@@ -1,9 +1,9 @@
 /**
- * SelfPacedWM Experiment — PILOT v2 (motor-free colour-matching)
+ * SelfPacedWM Experiment - PILOT v2 (motor-free colour-matching)
  * Translated from PsychoPy to jsPsych 7
  *
  * ═══════════════════════════════════════════════════════════════════════
- *  The deployed file KEEPS ITS NAME (js/experiment.js) — only its contents
+ *  The deployed file KEEPS ITS NAME (js/experiment.js) - only its contents
  *  change to this v2 version for pilot 2. The original button-press version
  *  (the MAIN-cohort file) is preserved separately as a backup
  *  (experiment_v1_buttonpress.js on the Drive) and is also recoverable from
@@ -30,6 +30,35 @@
  *  identity capture are all IDENTICAL to v1.
  * ═══════════════════════════════════════════════════════════════════════
  *
+ *  PILOT 5 CHANGES (on top of the pilot-4 build, kept as js/experiment_pilot4.js):
+ *   1. Image set back to the 386 pilot-3 images (the 63 removed for pilot 4
+ *      are restored).
+ *   2. Exact replay: each colour-matching (yoked) block replays the delays of
+ *      the self-paced block just before it in the same order (was: shuffled
+ *      within half-blocks). Objects and orientations are new on every yoked
+ *      trial (orientation was previously copied from the matched self-paced
+ *      trial), so only the delay sequence repeats. The replayed trial's index
+ *      is logged as yokedSourceTrialInBlock.
+ *   3. Calmer wording on the time limit. The rule (no points at 12 s) is
+ *      unchanged. Points screen: "You can generally earn more points the
+ *      longer ... At the same time, very fast responses (under about 1.25
+ *      seconds) or very late responses (above 12 seconds) earn no points.
+ *      Feel free to respond whenever you like in between." Feedback
+ *      mirrors the too-early lines and does not name the 12 s: "No points:
+ *      response was too late." / "This colour-match was too long to earn
+ *      points." ("no reward this trial" dropped from both colour-matching
+ *      lines). All other limit warnings removed (block cues, recap, block
+ *      descriptions). "Waiting longer earns more points" now appears only on
+ *      the points screen (removed from the self-paced block description, the
+ *      self-paced block cue and the recap).
+ *   4. Two forced-choice questions at the end (were self-paced delays longer
+ *      or shorter; which block type was easier), stored as debrief_question /
+ *      debrief_answer in jsPsychData.
+ *   5. Object presentation shortened from 800 ms to 500 ms (IMAGE_DURATION_MS),
+ *      as for the rotated objects in Yizhar et al. (2026, Spitzer lab).
+ *   6. No long dashes anywhere in the participant-facing text.
+ * ═══════════════════════════════════════════════════════════════════════
+ *
  *  PILOT 4 CHANGES (on top of the pilot-3 build), nothing else:
  *   1. Confidence wedge must be at least MIN_CONF_WEDGE_DEG (2°) wide before
  *      SPACE is accepted, and narrowing can no longer go below that width.
@@ -41,7 +70,7 @@
  *      Instructions mention the rule.
  *   4. Delay score D(d) now reaches its maximum at the time limit
  *      (REWARD.D_max = MAX_DELAY_MS / 1000 = 12 s, was 10 s) in both conditions.
- *   5. confidenceWedgeWidth is logged as a proper angle (clamped to 0–360°),
+ *   5. confidenceWedgeWidth is logged as a proper angle (clamped to 0-360°),
  *      and the wedge itself stops widening at 360° (it can always be narrowed).
  *   6. Stimulus set reduced from 386 to 323 images: removed the images above
  *      the upper IQR fence (Q3 + 1.5×IQR) on elongation (33) and on rotational
@@ -54,84 +83,97 @@
  * ─────────────────────────────────────────────
  */
 const FIXATION_DURATION_MS  = 1500;   // fixation cross duration (ms)
-const IMAGE_DURATION_MS     = 800;    // object presentation duration (ms)
-const MAX_DELAY_MS          = 12000;  // maximum delay before auto-termination (ms) — pilot 4: 12 s (was 10 s)
+const IMAGE_DURATION_MS     = 500;    // object presentation duration (ms) - pilot 5: 500 ms (was 800 ms)
+const MAX_DELAY_MS          = 12000;  // maximum delay before auto-termination (ms) - pilot 4: 12 s (was 10 s)
 
 /** ─────────────────────────────────────────────
- *  STIMULUS LIST  (323 image filenames — pilot 4: 63 low-level outliers removed from the pilot-3 set of 386)
+ *  STIMULUS LIST  (386 image filenames - pilot 5: the pilot-3 set; pilot 4 had used 323)
  * ───────────────────────────────────────────── */
 const STIMULI = [
   "witchhat.png","goose.png","golfclubs.png","goldcup.png","goblet.png",
   "globe.png","glasscup.png","glasscontainer.png","glassbottle.png","glass2.png",
-  "glass.png","giftribbon.png","garlicpress.png","garbagebin2.png","fanStanding.png",
-  "eyedrops2.png","exit.png","excersiceequipment.png","exactoknife.png","drinkingpitcher.png",
-  "drinkingbottle.png","drinkglass.png","dresser.png","dress.png","doublehook.png",
-  "doorhandle.png","doll.png","dog.png","dishwashingsoap.png","portablepotty.png",
-  "promdress.png","punchingbag3.png","railwaysign.png","rasor.png","purse.png",
-  "punchingbag2.png","rake2.png","broom.png","adjustable.png","africanmask.png",
-  "alarmclock.png","amphora.png","anchor.png","angelstatue.png","arch2.png",
-  "artichoke.png","asparagus.png","axe.png","babybottle.png","barbie.png",
-  "barrel2.png","carrots.png","deskchair.png","airfreshener.png","barchair.png",
-  "barchair2.png","basket.png","bathrobe.png","bathroomsink.png","beaver.png",
-  "beerbottle.png","beermug.png","bell2.png","beverage.png","bib.png",
-  "bin.png","birdcage2.png","birdhouse.png","bishop.png","blender.png",
-  "bloodorange.png","bottle.png","bowloffruit.png","boxinggloves.png","brush.png",
+  "glass.png","giftribbon.png","garlicpress.png","gardeningrak.png","garbagebin2.png",
+  "fanStanding.png","eyedrops2.png","exit.png","excersiceequipment.png","exactoknife.png",
+  "drinkingpitcher.png","drinkingbottle.png","drinkglass.png","dresser.png","dress.png",
+  "doublehook.png","doorhandle.png","doll.png","dog.png","dishwashingsoap.png",
+  "portablepotty.png","promdress.png","rake.png","punchingbag3.png","railwaysign.png",
+  "rasor.png","purse.png","postalmailbox.png","punchingbag2.png","rake2.png",
+  "broom.png","adjustable.png","africanmask.png","alarmclock.png","amphora.png",
+  "anchor.png","angelstatue.png","arch2.png","artichoke.png","asparagus.png",
+  "axe.png","babybottle.png","baloon.png","barbie.png","barrel2.png",
+  "baseballbat.png","candle.png","carrots.png","deskchair.png","airfreshener.png",
+  "bag.png","barchair.png","barchair2.png","basket.png","bathrobe.png",
+  "bathroomsink.png","beaver.png","beerbottle.png","beermug.png","bell2.png",
+  "beverage.png","bib.png","bin.png","birdcage2.png","birdhouse.png",
+  "birdhouse2.png","bishop.png","blender.png","bloodorange.png","bottle.png",
+  "bowloffruit.png","boxcutter.png","boxinggloves.png","broccoli.png","brush.png",
   "bucket.png","buddha.png","building.png","bunnytoy.png","cactus.png",
-  "carseat.png","cheesegreater.png","cabinet.png","calculator.png","candle2.png",
-  "candles.png","candlestick.png","candyjar.png","carkey.png","carrot.png",
+  "carseat.png","cheesegreater.png","closedumbrella.png","bullet.png","cabinet.png",
+  "cake.png","calculator.png","candle2.png","candles.png","candlestick.png",
+  "candyjar.png","cane.png","canister.png","carkey.png","carrot.png",
   "castletower.png","celery.png","cello.png","chairs.png","champane.png",
-  "chessknight.png","childbed.png","chocolatemilk.png","christmasslightbulb.png","christmasstree.png",
-  "christmasstree2.png","cleaningbrush.png","clothespin.png","coctailumbrella.png","coffeemaker.png",
-  "cookiecutter.png","danger.png","lamp.png","cobra.png","coffeemug2.png",
-  "comb.png","compass.png","computermouse.png","cone.png","crotches.png",
-  "curtain2.png","daquiri.png","die.png","drum.png","dryflowers.png",
-  "dumbell.png","duster.png","dustpan.png","dynamite.png","earring.png",
-  "earsirynge.png","eggcup.png","icecream.png","duck.png","eagle.png",
-  "egret.png","eiffeltower.png","electricguitar.png","emergency.png","icecreamcone.png",
-  "ironning.png","jarofcapers.png","jeans.png","jesusstatue.png","juice.png",
-  "kangaroo.png","ketchup.png","kettle.png","key.png","keychain.png",
-  "kitchenaid.png","knitteddoll.png","lantern.png","leek.png","legcast.png",
+  "cherry.png","chessknight.png","chicken.png","childbed.png","chocolatemilk.png",
+  "christmasslightbulb.png","christmasstree.png","christmasstree2.png","clarinet.png","cleaningbrush.png",
+  "clothespin.png","coctailumbrella.png","coffeemaker.png","cookiecutter.png","danger.png",
+  "lamp.png","cobra.png","coffeemug2.png","comb.png","compass.png",
+  "computermouse.png","cone.png","crotches.png","curtain2.png","daquiri.png",
+  "dart.png","die.png","drum.png","dryflowers.png","dumbell.png",
+  "duster.png","dustpan.png","dynamite.png","earexam.png","earring.png",
+  "earsirynge.png","eggcup.png","icecream.png","jacket.png","duck.png",
+  "eagle.png","egret.png","eiffeltower.png","electricguitar.png","emergency.png",
+  "icecreamcone.png","ironning.png","jarofcapers.png","jeans.png","jesusstatue.png",
+  "juice.png","kangaroo.png","ketchup.png","kettle.png","key.png",
+  "keychain.png","kidstoyrings.png","kitchenaid.png","knifeRegular.png","knitteddoll.png",
+  "ladle.png","lantern.png","leaf.png","leek.png","legcast.png",
   "legoman.png","lighthouse.png","makeupbrush.png","mountaingoat.png","nasalspray.png",
   "easel.png","feather.png","fighter.png","fireextinguisher.png","flower.png",
   "foodblender.png","foot.png","guitar.png","harp.png","lightbulb2.png",
-  "lighter.png","lipstick.png","lollipop.png","mailbox.png","marbles.png",
-  "masher.png","medal.png","menorah.png","mic.png","microphone.png",
-  "microscope.png","milkjug2.png","milkshake.png","minitree.png","mixinghook.png",
-  "mug.png","musicstand.png","opener2.png","suit.png","flashlight.png",
-  "fullbucket.png","moneyjar.png","nail.png","nailpolish2.png","ornament.png",
+  "lighter.png","lipstick.png","livingroomlamp.png","lollipop.png","mailbox.png",
+  "maplesyrup.png","marbles.png","masher.png","maskara.png","medal.png",
+  "menorah.png","mic.png","microphone.png","microscope.png","milkjug2.png",
+  "milkshake.png","minitree.png","mixinghook.png","mug.png","musicstand.png",
+  "opener2.png","suit.png","flashlight.png","fork.png","fullbucket.png",
+  "hoodie.png","moneyjar.png","nail.png","nailpolish2.png","ornament.png",
   "ostrich.png","ovenmit.png","pacifier.png","padlock.png","pager.png",
-  "paintbrush2.png","paintbucket.png","palmtree.png","grater.png","gravestone.png",
-  "grocerybag.png","gumballmachine.png","hairbrush.png","haircomb.png","hammer.png",
-  "hamper.png","handpuppet.png","headphones.png","herbbag.png","hook.png",
-  "hotpepper.png","papertowel.png","parfait.png","parkingmeter2.png","partyhat.png",
-  "payphone.png","pealer2.png","pear.png","pencils.png","pepper.png",
-  "perfumebottle.png","phone.png","pickles.png","pin.png","pitcher.png",
-  "plant.png","popsicle.png","trophy2.png","hotwaterbottle.png","hourglass.png",
-  "hydrant.png","peppermill.png","phonebooth.png","pieserver.png","pineapple.png",
-  "pinguin.png","pintofbeer.png","pizzacutter.png","plant2.png","plier.png",
-  "redbull.png","remotecontrol.png","ribbon.png","rice.png","rocket.png",
-  "shavingmachine.png","roses.png","rubberboots.png","safetypin.png","saltshaker.png",
-  "sauce.png","scissors.png","scooter.png","secateurs.png","shaving.png",
-  "shipmodel.png","shirtskirt.png","shower.png","showerhead.png","skirt.png",
-  "smallvase.png","speaker.png","spraybottle.png","statue2.png","skeleton.png",
-  "spicerack.png","stepladder.png","stool.png","streetlamp.png","streetpost.png",
-  "studentchair.png","suit2.png","suitcase.png","surfing.png","tabasco.png",
-  "teddybear.png","teepee.png","telephonebooth.png","tennisracket.png","testtube.png",
-  "thread.png","toiletbrush.png","toothpaste.png","trafficlight.png","thermiccup.png",
-  "thumbtack.png","tie.png","timepiece.png","toilet.png","toiletplung.png",
-  "totem.png","toyperson.png","trashbin.png","travelmug.png","tree.png",
-  "tripod.png","trumpet.png","tube.png","umbrella.png","vampire.png",
+  "paintbrush2.png","paintbucket.png","palmtree.png","pan.png","paperbag.png",
+  "grater.png","gravestone.png","grocerybag.png","gumballmachine.png","hairbrush.png",
+  "haircomb.png","hammer.png","hamper.png","handpuppet.png","headphones.png",
+  "herbbag.png","hook.png","hotpepper.png","paintroller.png","papertowel.png",
+  "parfait.png","parkingmeter2.png","parsley.png","partyhat.png","payphone.png",
+  "pealer.png","pealer2.png","pear.png","pen.png","pencils.png",
+  "pepper.png","perfumebottle.png","phone.png","pickles.png","pin.png",
+  "pitcher.png","plant.png","popsicle.png","trophy2.png","hotairbaloon.png",
+  "hotwaterbottle.png","hourglass.png","hydrant.png","peppermill.png","phonebooth.png",
+  "pieserver.png","pineapple.png","pinecone.png","pinguin.png","pintofbeer.png",
+  "pizzacutter.png","plant2.png","plier.png","redbull.png","remotecontrol.png",
+  "ribbon.png","rice.png","rocket.png","rose2.png","shavingmachine.png",
+  "rope.png","rose.png","roses.png","rubberboots.png","safetypin.png",
+  "saltshaker.png","sandcastle.png","sauce.png","scissors.png","scooter.png",
+  "screw.png","screwdriver.png","screwdriver_round.png","seashell.png","secateurs.png",
+  "sharpknife.png","shaving.png","shipmodel.png","shirtskirt.png","shovel.png",
+  "shower.png","showerhead.png","sirynge.png","skirt.png","slippers.png",
+  "smallvase.png","spagetyserver.png","speaker.png","spraybottle.png","statue2.png",
+  "stringspool.png","skeleton.png","spatula.png","spicerack.png","spoon.png",
+  "stepladder.png","stool.png","strawberry.png","streetlamp.png","streetpost.png",
+  "studentchair.png","suit2.png","suitcase.png","surfing.png","sword2.png",
+  "tabasco.png","teddybear.png","teepee.png","telephonebooth.png","tennisracket.png",
+  "testtube.png","thread.png","toiletbrush.png","toothpaste.png","trafficlight.png",
+  "tulip.png","thermiccup.png","thumbtack.png","tie.png","timepiece.png",
+  "toilet.png","toiletplung.png","toothbrush.png","totem.png","toyperson.png",
+  "trashbin.png","travelmug.png","tree.png","trickortreat.png","tripod.png",
+  "trumpet.png","tube.png","tweezers.png","umbrella.png","vampire.png",
   "vase2.png","vase3.png","walker.png","waterbottle.png","watercooler.png",
-  "waterjub.png","well.png","winebottle2.png","beachumbrella.png","seahorse.png",
-  "soapbottle.png","walkietalkie.png","wardrobe.png","watercan.png","waterkettle.png",
-  "weddingcake.png","wetsuit.png","windchimes.png","wineglass.png","winterglove.png",
-  "wintersock.png","woodenhammer.png","woodenspoons.png"
+  "waterjub.png","well.png","winebottle2.png","beachpail.png","beachumbrella.png",
+  "seahorse.png","soapbottle.png","walkietalkie.png","wardrobe.png","washer.png",
+  "watercan.png","waterkettle.png","weddingcake.png","wetsuit.png","wickchair.png",
+  "windchimes.png","wineglass.png","winterglove.png","wintersock.png","woodenhammer.png",
+  "woodenspoons.png"
 ];
 
 /** ─────────────────────────────────────────────
  *  EXPERIMENT PARAMETERS
  * ───────────────────────────────────────────── */
-const N_TOTAL_OBJECTS     = STIMULI.length;  // 323 (pilot 4): 386 pilot-3 images minus 33 very elongated and 30 near-circular objects
+const N_TOTAL_OBJECTS     = STIMULI.length;  // 386 (pilot 5: the 63 objects removed for pilot 4 are back)
 const TRIALS_PER_BLOCK    = 20;
 const N_SELF_PACED_BLOCKS = 6;               // 6 SP + 6 yoked = 12 total, 240 trials
 const N_TOTAL_BLOCKS      = N_SELF_PACED_BLOCKS * 2;
@@ -224,7 +266,7 @@ const state = {
 
 const trialData = [];
 
-/** Active animation cleanup — guarantees old loops are stopped before new ones start */
+/** Active animation cleanup - guarantees old loops are stopped before new ones start */
 const activeCleanup = { fn: null };
 function registerCleanup(fn) {
   if (activeCleanup.fn) try { activeCleanup.fn(); } catch(e){}
@@ -264,7 +306,7 @@ function computeReward(e, delayDuration, yokedScheduledDelay, conditionType, con
   if (e < REWARD.theta) { accuracyEligible = 1; A = 1 - Math.pow(e / REWARD.theta, REWARD.alpha); }
 
   // Pilot 4: a trial that reached the time limit earns nothing (base and
-  // confidence bonus), like a too-early response — in both conditions (see
+  // confidence bonus), like a too-early response - in both conditions (see
   // limitReachedThisTrial()). A and D are still computed and logged as usual;
   // only the points are zeroed.
   const cappedPenalty = !!limitReached;
@@ -313,9 +355,10 @@ function applyBlockSettings(expBlock) {
     const pairStart  = state.sourcePairN * OBJECTS_PER_PAIR;
     const yokedStart = pairStart + TRIALS_PER_BLOCK;
     const yokedObjectRows = state.allObjectRows.slice(yokedStart, yokedStart + TRIALS_PER_BLOCK);
-    const firstHalf  = shuffle([0,1,2,3,4,5,6,7,8,9]);
-    const secondHalf = shuffle([10,11,12,13,14,15,16,17,18,19]);
-    const sourceOrder = firstHalf.concat(secondHalf);
+    // Pilot 5: exact replay. Yoked trial i takes the delay (and target colour)
+    // of self-paced trial i, in the same order, so the sequence of delays and
+    // the jumps between them are identical (was: shuffled within half-blocks).
+    const sourceOrder = Array.from({length: TRIALS_PER_BLOCK}, (_, i) => i);
     state.currentYokedSchedule = sourceOrder;
     state.yoked_sourceTrialInBlock = []; state.yoked_sourceObjectRow = [];
     state.yoked_sourceOrientation = []; state.yoked_sourceDelayDuration = [];
@@ -341,9 +384,10 @@ function applyBlockSettings(expBlock) {
 function setupTrial(trialInBlock) {
   state.trialInBlock = trialInBlock;
   state.objectRow    = state.rowsInBlock[trialInBlock];
-  state.startOri1    = (state.conditionType === 'self_paced')
-    ? randInt(1, 359)
-    : state.yoked_sourceOrientation[trialInBlock];
+  // Pilot 5: yoked trials get a fresh random orientation, like self-paced
+  // trials (was: the matched self-paced trial's orientation), so only the delay
+  // sequence repeats, not the orientations or responses.
+  state.startOri1    = randInt(1, 359);
   // Preload image so it's ready when the trial screen appears
   state._preloadedImg = new Image();
   state._preloadedImg.src = imagePath(state.objectRow);
@@ -384,7 +428,7 @@ function setupDelay() {
 }
 
 function updateDelayHue(elapsed) {
-  // Identical equation in both conditions — same rate, same direction, no
+  // Identical equation in both conditions - same rate, same direction, no
   // change before/after any match point.
   state.hue = (state.hueStart + state.hueSpeed * elapsed) % 1.0;
 }
@@ -400,7 +444,7 @@ function endDelay(elapsed, timedOut) {
     state.lastSelfPaced_delayDuration.push(state.delayDuration);
     state.lastSelfPaced_bigPolygonFinalHue.push(state.bigPolygonFinalHue);
     state.lastSelfPaced_smallPolygonHue.push(state.smallPolygonHue);
-    // NB: no carry-over of hue between trials — each SP trial randomises inner
+    // NB: no carry-over of hue between trials - each SP trial randomises inner
     // and outer independently in setupDelay(), which prevents the colour
     // configuration from becoming informative about elapsed time.
   }
@@ -443,7 +487,7 @@ function renderBackground(ctx, W, H) {
   ctx.fillStyle = '#ffffff'; ctx.fill();
 }
 
-/** Draw image clipped strictly inside the circle — clip applied before any transform */
+/** Draw image clipped strictly inside the circle - clip applied before any transform */
 function drawClippedImage(ctx, img, cx, cy, r, angleDeg) {
   const size = r * 2 * 0.92;
   ctx.save();
@@ -475,7 +519,7 @@ function renderConfidence(canvas, img, responseOri, ori1, ori2) {
   ctx.fillStyle = '#808080';
   ctx.fillRect(0, 0, W, H);
 
-  // White filled circle — same as response screen
+  // White filled circle - same as response screen
   ctx.beginPath();
   ctx.arc(cx, cy, r, 0, 2 * Math.PI);
   ctx.fillStyle = '#ffffff';
@@ -556,7 +600,7 @@ function makeDelayTrial() {
     canvas_size: [480, 480],
     stimulus: (canvas) => { renderDelay(canvas, state.hue, state.smallPolygonHue); },
     // ── PILOT v2 CHANGE (colour-matching condition only) ──────────────
-    // Self-paced blocks: unchanged — the participant ends the delay with SPACE.
+    // Self-paced blocks: unchanged - the participant ends the delay with SPACE.
     // Colour-matching (yoked) blocks: NO key press. The delay now terminates
     // AUTOMATICALLY at the exact moment the outer colour matches the inner
     // colour (== state.yokedScheduledDelay). This keeps the delay duration
@@ -587,7 +631,7 @@ function makeDelayTrial() {
       if (state.conditionType === 'yoked') {
         // PILOT v2: colour-matching trials auto-terminate exactly at the match.
         // The credited delay equals the scheduled (matched) delay, and this is
-        // NOT a time-out — the colours genuinely met at this moment.
+        // NOT a time-out - the colours genuinely met at this moment.
         endDelay(state.yokedScheduledDelay, false);
       } else {
         // Self-paced: unchanged. If rt is null the trial timed out (participant
@@ -723,7 +767,7 @@ function makeConfidenceTrial() {
             state.confidenceOri2 = state.responseOri + 180;
           }
         } else if (narrowerHeld) {
-          // Pilot 4: use the raw width (now bounded 0–360°). The wrapped angular
+          // Pilot 4: use the raw width (now bounded 0-360°). The wrapped angular
           // distance reads a full-circle wedge as ~0°, which blocked narrowing.
           if (state.confidenceOri2 - state.confidenceOri1 > MIN_WEDGE_GAP) {
             state.confKeySpeed += ROT_INCREASE_PER_FRAME;
@@ -815,16 +859,16 @@ function makeFeedbackTrial() {
 
       let msg;
       if (state.conditionType === 'self_paced' && state.delayTimedOut)
-        msg = `${Math.round(e)} degrees difference.<br>No points this time: the ${MAX_DELAY_MS / 1000}-second limit was reached.<br>Please remember to press SPACE before the time runs out!`;
+        msg = `${Math.round(e)} degrees difference.<br>No points: response was too late.`;
       else if (state.conditionType === 'yoked' && limitReachedThisTrial())
-        // Not the participant's doing — neutral wording, as for short colour-matches.
-        msg = `${Math.round(e)} degrees difference.<br>This colour-match ran for the full ${MAX_DELAY_MS / 1000} seconds and reached the time limit, so there is no reward this trial.`;
+        // Not the participant's doing - neutral wording, as for short colour-matches.
+        msg = `${Math.round(e)} degrees difference.<br>This colour-match was too long to earn points.`;
       else if (state.conditionType === 'self_paced' && rew.d < REWARD.d_min)
         msg = `${Math.round(e)} degrees difference.<br>No points: response was too early.`;
       else if (state.conditionType === 'yoked' && rew.d < REWARD.d_min)
         // PILOT v2: colour-matching trials end automatically, so a short delay is
-        // NOT the participant's doing — use neutral wording, no blame.
-        msg = `${Math.round(e)} degrees difference.<br>This colour-match was too short to earn points — no reward this trial.`;
+        // NOT the participant's doing - use neutral wording, no blame.
+        msg = `${Math.round(e)} degrees difference.<br>This colour-match was too short to earn points.`;
       else if (e < 5)
         msg = `Great job!<br>${Math.round(e)} degrees difference.<br>You win ${Math.round(rew.total)} points`;
       else
@@ -844,6 +888,8 @@ function makeFeedbackTrial() {
         startOri1: state.startOri1, delayDuration: state.delayDuration,
         delayTimedOut: state.delayTimedOut,            // true if trial hit the 12 s limit (self-paced: no points)
         yokedScheduledDelay: state.yokedScheduledDelay,
+        yokedSourceTrialInBlock: state.conditionType === 'yoked'   // pilot 5: which self-paced trial this delay replays
+          ? state.yoked_sourceTrialInBlock[state.trialInBlock] : null,
         smallPolygonHue: state.smallPolygonHue,        // inner-circle hue this trial
         targetHue: state.targetHue,                    // target outer hue (for yoked) / inner hue carried over (for SP)
         bigPolygonStartHue: state.hueStart,            // outer hue at delay onset
@@ -903,8 +949,8 @@ function buildTimeline(jsPsych) {
   // ── Screen 1: Welcome & overview ──
   timeline.push(makeTextTrial(
     '<strong>Welcome!</strong>\n\n' +
-    'In this experiment, you will see everyday objects on the screen, and your task will be to remember their orientation — that is, how each object is rotated, like the hands of a clock.\n\n' +
-    'The experiment is divided into 12 blocks of 20 trials each. It takes about 60–90 minutes to complete.\n\n' +
+    'In this experiment, you will see everyday objects on the screen, and your task will be to remember their orientation, that is, how each object is rotated, like the hands of a clock.\n\n' +
+    'The experiment is divided into 12 blocks of 20 trials each. It takes about 60 to 90 minutes to complete.\n\n' +
     'You will earn points based on how well you remember and how confident you are in your answer. Please give it your full attention.\n\n' +
     'Press <strong>Continue</strong> to see what a single trial looks like.'
   ));
@@ -914,23 +960,22 @@ function buildTimeline(jsPsych) {
     '<strong>What happens on each trial</strong>\n\n' +
     '<strong>Step 1.</strong> A cross (+) will appear in the centre of the screen. This means a trial is about to begin.\n\n' +
     '<strong>Step 2.</strong> An object will briefly flash on the screen at a particular angle of rotation. Try to remember exactly how it was rotated.\n\n' +
-    '<strong>Step 3.</strong> Two coloured circles will appear — a small one inside a larger one. You will need to hold the object\'s rotation in mind while the circles are on screen. The outer circle\'s colour will keep changing throughout this period.\n\n' +
-    '<strong>Step 4.</strong> The same object will appear again, but rotated to a different angle. Your task is to rotate it back to <strong>exactly the same angle as the original</strong>. Use the <strong>Left</strong> and <strong>Right</strong> buttons that appear below the object — hold them down with the mouse to rotate. Press <strong>SPACE</strong> when you are done.\n\n' +
-    '<strong>Step 5.</strong> Finally, you will report how confident you are in your answer by opening a wedge of uncertainty around your chosen angle. Use the <strong>Narrower</strong> and <strong>Wider</strong> buttons to set the width. A narrow wedge means "I\'m very sure my answer is exactly right". A wide wedge means "I\'m not sure — the correct angle could be anywhere in this range".\n\n' +
+    '<strong>Step 3.</strong> Two coloured circles will appear: a small one inside a larger one. You will need to hold the object\'s rotation in mind while the circles are on screen. The outer circle\'s colour will keep changing throughout this period.\n\n' +
+    '<strong>Step 4.</strong> The same object will appear again, but rotated to a different angle. Your task is to rotate it back to <strong>exactly the same angle as the original</strong>. Use the <strong>Left</strong> and <strong>Right</strong> buttons that appear below the object, and hold them down with the mouse to rotate. Press <strong>SPACE</strong> when you are done.\n\n' +
+    '<strong>Step 5.</strong> Finally, you will report how confident you are in your answer by opening a wedge of uncertainty around your chosen angle. Use the <strong>Narrower</strong> and <strong>Wider</strong> buttons to set the width. A narrow wedge means "I\'m very sure my answer is exactly right". A wide wedge means "I\'m not sure, the correct angle could be anywhere in this range".\n\n' +
     'Press <strong>Continue</strong>.'
   ));
 
   // ── Screen 3: Points and block types ──
   timeline.push(makeTextTrial(
     '<strong>How points work</strong>\n\n' +
-    '<strong>READ THE INSTRUCTIONS CAREFULLY!!</strong>\n\n' +
     'You earn points on each trial based on three things:\n\n' +
     '<strong>• Accuracy.</strong> The closer your rotation is to the original, the more points. Errors larger than about 15 degrees earn nothing.\n\n' +
-    '<strong>• Time held in memory.</strong> You earn more points the longer you successfully held the object\'s rotation in mind before answering. Very fast responses (under about 1.25 seconds) earn no points. In self-paced blocks there is also a time limit of ' + (MAX_DELAY_MS / 1000) + ' seconds. If it is reached before you press SPACE, the trial earns <strong>no points</strong>, so make sure to respond before then.\n\n' +
+    '<strong>• Time held in memory.</strong> You can generally earn more points the longer you successfully held the object\'s rotation in mind before answering. At the same time, very fast responses (under about 1.25 seconds) or very late responses (above ' + (MAX_DELAY_MS / 1000) + ' seconds) earn no points. Feel free to respond whenever you like in between.\n\n' +
     '<strong>• Confidence.</strong> If your wedge is narrow and it includes the correct angle, you earn bonus points. A wedge that\'s too wide earns little or no bonus.\n\n\n' +
     '<strong>Two types of blocks</strong>\n\n' +
-    '<strong>SELF-PACED blocks.</strong> You decide when to respond. Press SPACE during the coloured circles when you want to report the rotation. Waiting longer = more points, <em>if you still remember the rotation well</em> — but press SPACE before the ' + (MAX_DELAY_MS / 1000) + '-second limit, or the trial earns no points.\n\n' +
-    '<strong>COLOUR-MATCHING blocks.</strong> Here you do <strong>not</strong> press any button during the circles. The outer (changing) circle\'s colour cycles on its own until it matches the inner (fixed) circle\'s colour, and at that exact moment the circles end <strong>automatically</strong> and you move on to report the rotation. You cannot control the timing — your only job is to keep the object\'s rotation in mind the whole time, because you\'ll be asked to report it as soon as the colours match. If a colour-match runs for the full ' + (MAX_DELAY_MS / 1000) + ' seconds and reaches the time limit, that trial earns no points.\n\n' +
+    '<strong>SELF-PACED blocks.</strong> You decide when to respond. Press SPACE during the coloured circles when you want to report the rotation.\n\n' +
+    '<strong>COLOUR-MATCHING blocks.</strong> Here you do <strong>not</strong> press any button during the circles. The outer (changing) circle\'s colour cycles on its own until it matches the inner (fixed) circle\'s colour, and at that exact moment the circles end <strong>automatically</strong> and you move on to report the rotation. You cannot control the timing. Your only job is to keep the object\'s rotation in mind the whole time, because you\'ll be asked to report it as soon as the colours match.\n\n' +
     'Blocks alternate between these two types. You will be told at the start of each block which type it is.\n\n' +
     'Press <strong>Continue</strong> for a short practice.'
   ));
@@ -938,13 +983,13 @@ function buildTimeline(jsPsych) {
   // ── PRACTICE PHASE ──
   // 2 self-paced practice + 2 yoked practice
   timeline.push(makeTextTrial(
-    '<strong>Practice — Self-paced</strong>\n\n' +
+    '<strong>Practice: Self-paced</strong>\n\n' +
     'Let\'s try 2 practice trials. The first 2 practice trials are <strong>SELF-PACED</strong>: press SPACE during the coloured circles whenever you want to report the rotation.\n\n' +
     'You will see how many points you would have earned, but practice trials do not count toward your final score.\n\n' +
     'Press <strong>Continue</strong> to start.'
   ));
 
-  // Set up practice — self-paced
+  // Set up practice - self-paced
   timeline.push({ type: jsPsychCallFunction, func: () => {
     state.isPractice = true;
     state.isYokedPractice = false;
@@ -976,10 +1021,10 @@ function buildTimeline(jsPsych) {
 
   // Yoked practice intro
   timeline.push(makeTextTrial(
-    '<strong>Practice — Colour-matching</strong>\n\n' +
+    '<strong>Practice: Colour-matching</strong>\n\n' +
     'Now 2 practice trials in the <strong>COLOUR-MATCHING</strong> condition.\n\n' +
     'During the coloured circles, the inner (small) circle\'s colour stays fixed, while the outer (large) circle\'s colour cycles continuously. You do <strong>not</strong> press anything during this period: the moment the outer circle\'s colour matches the inner circle\'s colour, the circles end <strong>automatically</strong> and you move on.\n\n' +
-    'Your only job is to keep the object\'s rotation in mind — you\'ll be asked to report it as soon as the colours match.\n\n' +
+    'Your only job is to keep the object\'s rotation in mind. You\'ll be asked to report it as soon as the colours match.\n\n' +
     'Press <strong>Continue</strong> to start.'
   ));
 
@@ -1034,8 +1079,8 @@ function buildTimeline(jsPsych) {
     '<strong>Quick recap:</strong>\n' +
     '• Each trial starts with a + sign, then an object appears briefly.\n' +
     '• During the coloured circles:\n' +
-    '   – In <strong>self-paced</strong> blocks, press <strong>SPACE</strong> whenever you want to report the rotation (waiting longer earns more points, but reaching the ' + (MAX_DELAY_MS / 1000) + '-second limit earns none).\n' +
-    '   – In <strong>colour-matching</strong> blocks, you do nothing — the circles end <strong>automatically</strong> the moment the two circles\' colours match.\n' +
+    '   - In <strong>self-paced</strong> blocks, press <strong>SPACE</strong> whenever you want to report the rotation.\n' +
+    '   - In <strong>colour-matching</strong> blocks, you do nothing; the circles end <strong>automatically</strong> the moment the two circles\' colours match.\n' +
     '• Rotate the object back to its <strong>exact original angle</strong> using the buttons, then press SPACE.\n' +
     '• Set your wedge to honestly reflect how confident you are.\n\n' +
     'Blocks alternate self-paced and colour-matching. You will be told which type each block is.\n\n' +
@@ -1052,15 +1097,13 @@ function buildTimeline(jsPsych) {
       stimulus: () => state.conditionType === 'self_paced'
         ? `<div class="instructions"><strong>SELF-PACED BLOCK</strong><br><br>
             Remember the rotation of each object.<br><br>
-            During the coloured circles, press <strong>SPACE</strong> whenever you want to report the remembered rotation. Waiting longer earns more points, but only if you still remember the rotation well.<br><br>
-            Please make sure to respond before the ${MAX_DELAY_MS / 1000}-second limit — trials that reach it earn no points.<br><br>
+            During the coloured circles, press <strong>SPACE</strong> whenever you want to report the remembered rotation.<br><br>
             Press <strong>Start block</strong> when ready.
           </div>`
         : `<div class="instructions"><strong>COLOUR-MATCHING BLOCK</strong><br><br>
             Remember the rotation of each object.<br><br>
             During the coloured circles you do <strong>not</strong> press anything. The outer (changing) circle's colour cycles until it matches the inner (fixed) circle's colour, and at that moment the circles end <strong>automatically</strong>.<br><br>
             You will then be asked to report the object's rotation, so keep it in mind throughout.<br><br>
-            If a colour-match runs for the full ${MAX_DELAY_MS / 1000} seconds and reaches the time limit, that trial earns no points.<br><br>
             Press <strong>Start block</strong> when ready.
           </div>`,
       choices: ['Start block'],
@@ -1083,6 +1126,29 @@ function buildTimeline(jsPsych) {
     timeline.push(makeBlockEndTrial());
   }
 
+  // Pilot 5: two short questions at the very end. The answer is stored on the
+  // jsPsych data row as debrief_question / debrief_answer.
+  function makeDebriefQuestion(id, text, choices) {
+    return {
+      type: jsPsychHtmlButtonResponse,
+      stimulus: `<div class="instructions">${text}</div>`,
+      choices: choices,
+      data: { debrief_question: id },
+      on_finish: (data) => { data.debrief_answer = choices[data.response]; },
+    };
+  }
+  timeline.push(makeTextTrial(
+    '<strong>That was the last block.</strong>\n\n' +
+    'Before you finish, please answer two short questions about the experiment.'
+  ));
+  timeline.push(makeDebriefQuestion('delay_length',
+    'In the <strong>self-paced</strong> blocks you decided yourself when to respond. In the <strong>colour-matching</strong> blocks the circles ended on their own.<br><br>' +
+    'Compared with the colour-matching blocks, were the waiting periods in the self-paced blocks longer or shorter?',
+    ['Longer in self-paced blocks', 'Shorter in self-paced blocks']));
+  timeline.push(makeDebriefQuestion('easier_condition',
+    'Which type of block did you find easier?',
+    ['Self-paced blocks', 'Colour-matching blocks']));
+
   // End
   timeline.push({
     type: jsPsychHtmlButtonResponse,
@@ -1099,13 +1165,13 @@ function buildTimeline(jsPsych) {
  *  PARTICIPANT / SESSION IDENTITY CAPTURE
  *  ---------------------------------------------------------------
  *  Reads identifiers from the URL the participant ALREADY arrived with.
- *  This is completely passive — it requires NOTHING extra from the
+ *  This is completely passive - it requires NOTHING extra from the
  *  participant (no typing, no clicks, no extra screen). It just inspects
  *  window.location, which already contains the token/Prolific parameters
  *  that Experiment Factory / Prolific put there.
  *
  *  Captured (whatever is present):
- *    - every URL query parameter, verbatim (url_params) — so the token is
+ *    - every URL query parameter, verbatim (url_params) - so the token is
  *      preserved regardless of what the parameter is named
  *    - convenience aliases for the common identifiers (token, prolific_pid…)
  *    - full URL + referrer + user agent as an audit-trail fallback
@@ -1158,7 +1224,7 @@ function captureSessionInfo() {
 captureSessionInfo();
 
 /** ─────────────────────────────────────────────
- *  DATA SAVING  (jQuery $.ajax pattern — matches d2 test example exactly)
+ *  DATA SAVING  (jQuery $.ajax pattern - matches d2 test example exactly)
  *  1. POSTs data to /save with URL-encoded body { data: <json string> }
  *  2. On success, POSTs to /next so Experiment Factory marks the session
  *     as finished (this is what triggers the results file to appear).
