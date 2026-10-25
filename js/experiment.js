@@ -30,6 +30,31 @@
  *  identity capture are all IDENTICAL to v1.
  * ═══════════════════════════════════════════════════════════════════════
  *
+ *  PILOT 6 CHANGES (on top of the pilot-5 build, kept as js/experiment_pilot5.js):
+ *   1. Object presentation back to 800 ms (IMAGE_DURATION_MS; pilot 5: 500 ms).
+ *   2. Waiting cues back to the pilot-3 wording: the self-paced block screen
+ *      ("Waiting longer earns more points, but only if you still remember the
+ *      rotation well."), the self-paced description on the points screen
+ *      ("Waiting longer = more points, if you still remember the rotation
+ *      well.") and the recap ("(waiting longer earns more points)").
+ *   3. "Feel free to respond whenever you like in between." removed from the
+ *      points screen.
+ *   4. Feedback is identical in both conditions: "This trial was too short to
+ *      earn points." (under 1.25 s) and "This trial was too long to earn
+ *      points." (12 s limit reached). Pilots 1-5 used "No points: response was
+ *      too early/late." (self-paced) and "This colour-match was too short/long
+ *      to earn points." (colour-matching).
+ *   5. Points screen: "You can earn more points the longer ..." ("generally"
+ *      removed; pilot 3: "You earn more points the longer ...").
+ *   6. Practice check: if SPACE is not pressed in either self-paced practice
+ *      trial, a reminder of the self-paced instructions is shown and the 2
+ *      self-paced practice trials are repeated (at most 2 repeats). Logged as
+ *      practiceRound (1 = first round).
+ *   Everything else as in pilot 5: 386 images, exact replay of the self-paced
+ *   delays in the colour-matching block (new objects and orientations), 12 s
+ *   limit with no points at the limit, calm limit wording, end questions.
+ * ═══════════════════════════════════════════════════════════════════════
+ *
  *  PILOT 5 CHANGES (on top of the pilot-4 build, kept as js/experiment_pilot4.js):
  *   1. Image set back to the 386 pilot-3 images (the 63 removed for pilot 4
  *      are restored).
@@ -85,7 +110,7 @@
  * ─────────────────────────────────────────────
  */
 const FIXATION_DURATION_MS  = 1500;   // fixation cross duration (ms)
-const IMAGE_DURATION_MS     = 500;    // object presentation duration (ms) - pilot 5: 500 ms (was 800 ms)
+const IMAGE_DURATION_MS     = 800;    // object presentation duration (ms) - pilot 6: back to 800 ms (pilot 5 used 500 ms)
 const MAX_DELAY_MS          = 12000;  // maximum delay before auto-termination (ms) - pilot 4: 12 s (was 10 s)
 
 /** ─────────────────────────────────────────────
@@ -263,7 +288,7 @@ const state = {
   responseOri: 0, adjustmentStartOri: 0, thisOriT1: 0, rotKeySpeed: ROT_INITIAL_SPEED,
   confidenceOri1: 0, confidenceOri2: 0, confKeySpeed: 1.0, confidenceWedgeWidth: 0,
   winningPoints: 0, feedbackText: '',
-  isPractice: false, isYokedPractice: false,
+  isPractice: false, isYokedPractice: false, practiceRound: 0, practiceSpacePresses: 0,
 };
 
 const trialData = [];
@@ -439,6 +464,8 @@ function endDelay(elapsed, timedOut) {
   state.delayDuration = elapsed;
   state.delayTimedOut = !!timedOut;
   state.bigPolygonFinalHue = state.hue;
+  if (state.isPractice && state.conditionType === 'self_paced' && !state.delayTimedOut)
+    state.practiceSpacePresses++;   // pilot 6: practice check
   if (state.conditionType === 'self_paced') {
     state.lastSelfPaced_trialInBlock.push(state.trialInBlock);
     state.lastSelfPaced_objectRow.push(state.objectRow);
@@ -861,16 +888,16 @@ function makeFeedbackTrial() {
 
       let msg;
       if (state.conditionType === 'self_paced' && state.delayTimedOut)
-        msg = `${Math.round(e)} degrees difference.<br>No points: response was too late.`;
+        msg = `${Math.round(e)} degrees difference.<br>This trial was too long to earn points.`;
       else if (state.conditionType === 'yoked' && limitReachedThisTrial())
         // Not the participant's doing - neutral wording, as for short colour-matches.
-        msg = `${Math.round(e)} degrees difference.<br>This colour-match was too long to earn points.`;
+        msg = `${Math.round(e)} degrees difference.<br>This trial was too long to earn points.`;
       else if (state.conditionType === 'self_paced' && rew.d < REWARD.d_min)
-        msg = `${Math.round(e)} degrees difference.<br>No points: response was too early.`;
+        msg = `${Math.round(e)} degrees difference.<br>This trial was too short to earn points.`;
       else if (state.conditionType === 'yoked' && rew.d < REWARD.d_min)
         // PILOT v2: colour-matching trials end automatically, so a short delay is
         // NOT the participant's doing - use neutral wording, no blame.
-        msg = `${Math.round(e)} degrees difference.<br>This colour-match was too short to earn points.`;
+        msg = `${Math.round(e)} degrees difference.<br>This trial was too short to earn points.`;
       else if (e < 5)
         msg = `Great job!<br>${Math.round(e)} degrees difference.<br>You win ${Math.round(rew.total)} points`;
       else
@@ -882,6 +909,7 @@ function makeFeedbackTrial() {
 
       recordTrial({
         conditionType: state.conditionType, expBlock: state.expBlock,
+        practiceRound: (state.isPractice && state.conditionType === 'self_paced') ? state.practiceRound : null,   // pilot 6: 1 = first self-paced practice round, 2-3 = repeats
         sourcePairN: state.sourcePairN, trialInBlock: state.trialInBlock,
         objectRow: state.objectRow, stimulusName: STIMULI[state.objectRow],
         fixationDurationMs: FIXATION_DURATION_MS,      // fixed timing parameter
@@ -973,10 +1001,10 @@ function buildTimeline(jsPsych) {
     '<strong>How points work</strong>\n\n' +
     'You earn points on each trial based on three things:\n\n' +
     '<strong>• Accuracy.</strong> The closer your rotation is to the original, the more points. Errors larger than about 15 degrees earn nothing.\n\n' +
-    '<strong>• Time held in memory.</strong> You can generally earn more points the longer you successfully held the object\'s rotation in mind before answering. At the same time, very fast responses (under about 1.25 seconds) or very late responses (above ' + (MAX_DELAY_MS / 1000) + ' seconds) earn no points. Feel free to respond whenever you like in between.\n\n' +
+    '<strong>• Time held in memory.</strong> You can earn more points the longer you successfully held the object\'s rotation in mind before answering. At the same time, very fast responses (under about 1.25 seconds) or very late responses (above ' + (MAX_DELAY_MS / 1000) + ' seconds) earn no points.\n\n' +
     '<strong>• Confidence.</strong> If your wedge is narrow and it includes the correct angle, you earn bonus points. A wedge that\'s too wide earns little or no bonus.\n\n\n' +
     '<strong>Two types of blocks</strong>\n\n' +
-    '<strong>SELF-PACED blocks.</strong> You decide when to respond. Press SPACE during the coloured circles when you want to report the rotation.\n\n' +
+    '<strong>SELF-PACED blocks.</strong> You decide when to respond. Press SPACE during the coloured circles when you want to report the rotation. Waiting longer = more points, <em>if you still remember the rotation well.</em>\n\n' +
     '<strong>COLOUR-MATCHING blocks.</strong> Here you do <strong>not</strong> press any button during the circles. The outer (changing) circle\'s colour cycles on its own until it matches the inner (fixed) circle\'s colour, and at that exact moment the circles end <strong>automatically</strong> and you move on to report the rotation. You cannot control the timing. Your only job is to keep the object\'s rotation in mind the whole time, because you\'ll be asked to report it as soon as the colours match.\n\n' +
     'Blocks alternate between these two types. You will be told at the start of each block which type it is.\n\n' +
     'Press <strong>Continue</strong> for a short practice.'
@@ -991,8 +1019,27 @@ function buildTimeline(jsPsych) {
     'Press <strong>Continue</strong> to start.'
   ));
 
+  // Pilot 6 practice check: if no SPACE is pressed in either self-paced
+  // practice trial (both run to the time limit), show a reminder of the
+  // self-paced instructions and repeat the 2 self-paced practice trials
+  // (same practice objects, new orientations). At most 2 repeats.
+  const MAX_SP_PRACTICE_ROUNDS = 3;
+  const spPracticeTimeline = [];
+  spPracticeTimeline.push({
+    timeline: [makeTextTrial(
+      '<strong>Reminder: Self-paced trials</strong>\n\n' +
+      'In the last 2 practice trials, SPACE was not pressed, so the coloured circles ran until the time limit.\n\n' +
+      'In <strong>SELF-PACED</strong> trials, you decide when to respond: press SPACE during the coloured circles whenever you want to report the rotation. Waiting longer earns more points, but only if you still remember the rotation well.\n\n' +
+      'Let\'s try 2 more practice trials.\n\n' +
+      'Press <strong>Continue</strong> to start.'
+    )],
+    conditional_function: () => state.practiceRound > 0,
+  });
+
   // Set up practice - self-paced
-  timeline.push({ type: jsPsychCallFunction, func: () => {
+  spPracticeTimeline.push({ type: jsPsychCallFunction, func: () => {
+    state.practiceRound++;
+    state.practiceSpacePresses = 0;
     state.isPractice = true;
     state.isYokedPractice = false;
     state.expBlock = -1;
@@ -1010,16 +1057,20 @@ function buildTimeline(jsPsych) {
 
   for (let t = 0; t < 2; t++) {
     const trialIndex = t;
-    timeline.push({ type: jsPsychCallFunction, func: () => {
+    spPracticeTimeline.push({ type: jsPsychCallFunction, func: () => {
       setupTrial(trialIndex); setupDelay(); setupResponse();
     }});
-    timeline.push(fixationTrial);
-    timeline.push(makeImageCanvasTrial());
-    timeline.push(makeDelayTrial());
-    timeline.push(makeResponseTrial());
-    timeline.push(makeConfidenceTrial());
-    timeline.push(makeFeedbackTrial());
+    spPracticeTimeline.push(fixationTrial);
+    spPracticeTimeline.push(makeImageCanvasTrial());
+    spPracticeTimeline.push(makeDelayTrial());
+    spPracticeTimeline.push(makeResponseTrial());
+    spPracticeTimeline.push(makeConfidenceTrial());
+    spPracticeTimeline.push(makeFeedbackTrial());
   }
+  timeline.push({
+    timeline: spPracticeTimeline,
+    loop_function: () => state.practiceSpacePresses === 0 && state.practiceRound < MAX_SP_PRACTICE_ROUNDS,
+  });
 
   // Yoked practice intro
   timeline.push(makeTextTrial(
@@ -1081,7 +1132,7 @@ function buildTimeline(jsPsych) {
     '<strong>Quick recap:</strong>\n' +
     '• Each trial starts with a + sign, then an object appears briefly.\n' +
     '• During the coloured circles:\n' +
-    '   - In <strong>self-paced</strong> blocks, press <strong>SPACE</strong> whenever you want to report the rotation.\n' +
+    '   - In <strong>self-paced</strong> blocks, press <strong>SPACE</strong> whenever you want to report the rotation (waiting longer earns more points).\n' +
     '   - In <strong>colour-matching</strong> blocks, you do nothing; the circles end <strong>automatically</strong> the moment the two circles\' colours match.\n' +
     '• Rotate the object back to its <strong>exact original angle</strong> using the buttons, then press SPACE.\n' +
     '• Set your wedge to honestly reflect how confident you are.\n\n' +
@@ -1099,7 +1150,7 @@ function buildTimeline(jsPsych) {
       stimulus: () => state.conditionType === 'self_paced'
         ? `<div class="instructions"><strong>SELF-PACED BLOCK</strong><br><br>
             Remember the rotation of each object.<br><br>
-            During the coloured circles, press <strong>SPACE</strong> whenever you want to report the remembered rotation.<br><br>
+            During the coloured circles, press <strong>SPACE</strong> whenever you want to report the remembered rotation. Waiting longer earns more points, but only if you still remember the rotation well.<br><br>
             Press <strong>Start block</strong> when ready.
           </div>`
         : `<div class="instructions"><strong>COLOUR-MATCHING BLOCK</strong><br><br>
