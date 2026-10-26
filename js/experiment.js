@@ -54,6 +54,13 @@
  *      "Your goal is to earn as many points as possible. The longer you hold
  *      the object's rotation in mind before answering, the more points you
  *      earn, as long as you still remember it well." 
+ *   8. Points screen: "Time held in memory" now listed first (before
+ *      Accuracy). Self-paced description: "You control the timing, and decide
+ *      for how long you want to keep the object in mind." (was "You decide when
+ *      to respond."); same sentence in the practice-check reminder.
+ *   9. Self-paced practice intro expanded: control of the timing, the points
+ *      goal (longer = more points if remembered well), and the 1.25 s / 12 s
+ *      limits.
  *   Everything else as in pilot 5: 386 images, exact replay of the self-paced
  *   delays in the colour-matching block (new objects and orientations), 12 s
  *   limit with no points at the limit, calm limit wording, end questions.
@@ -1005,11 +1012,11 @@ function buildTimeline(jsPsych) {
   timeline.push(makeTextTrial(
     '<strong>How points work</strong>\n\n' +
     'You earn points on each trial based on three things:\n\n' +
-    '<strong>• Accuracy.</strong> The closer your rotation is to the original, the more points. Errors larger than about 15 degrees earn nothing.\n\n' +
     '<strong>• Time held in memory.</strong> You can earn more points the longer you successfully held the object\'s rotation in mind before answering. At the same time, very fast responses (under about 1.25 seconds) or very late responses (above ' + (MAX_DELAY_MS / 1000) + ' seconds) earn no points.\n\n' +
+    '<strong>• Accuracy.</strong> The closer your rotation is to the original, the more points. Errors larger than about 15 degrees earn nothing.\n\n' +
     '<strong>• Confidence.</strong> If your wedge is narrow and it includes the correct angle, you earn bonus points. A wedge that\'s too wide earns little or no bonus.\n\n\n' +
     '<strong>Two types of blocks</strong>\n\n' +
-    '<strong>SELF-PACED blocks.</strong> You decide when to respond. Press SPACE during the coloured circles when you want to report the rotation. Waiting longer = more points, <em>if you still remember the rotation well.</em>\n\n' +
+    '<strong>SELF-PACED blocks.</strong> You control the timing, and decide for how long you want to keep the object in mind. Press SPACE during the coloured circles when you want to report the rotation. Waiting longer = more points, <em>if you still remember the rotation well.</em>\n\n' +
     '<strong>COLOUR-MATCHING blocks.</strong> Here you do <strong>not</strong> press any button during the circles. The outer (changing) circle\'s colour cycles on its own until it matches the inner (fixed) circle\'s colour, and at that exact moment the circles end <strong>automatically</strong> and you move on to report the rotation. You cannot control the timing. Your only job is to keep the object\'s rotation in mind the whole time, because you\'ll be asked to report it as soon as the colours match.\n\n' +
     'Blocks alternate between these two types. You will be told at the start of each block which type it is.\n\n' +
     'Press <strong>Continue</strong> for a short practice.'
@@ -1019,7 +1026,9 @@ function buildTimeline(jsPsych) {
   // 2 self-paced practice + 2 yoked practice
   timeline.push(makeTextTrial(
     '<strong>Practice: Self-paced</strong>\n\n' +
-    'Let\'s try 2 practice trials. The first 2 practice trials are <strong>SELF-PACED</strong>: press SPACE during the coloured circles whenever you want to report the rotation.\n\n' +
+    'Let\'s try 2 practice trials. The first 2 practice trials are <strong>SELF-PACED</strong>.\n\n' +
+    'You control the timing, and decide for how long you want to keep the object in mind. Press SPACE during the coloured circles when you want to report the rotation.\n\n' +
+    'Your goal is to earn as many points as possible. The longer you hold the object\'s rotation in mind, the more points you earn, as long as you still remember it well. Responses under about 1.25 seconds or above ' + (MAX_DELAY_MS / 1000) + ' seconds earn no points.\n\n' +
     'You will see how many points you would have earned, but practice trials do not count toward your final score.\n\n' +
     'Press <strong>Continue</strong> to start.'
   ));
@@ -1034,7 +1043,7 @@ function buildTimeline(jsPsych) {
     timeline: [makeTextTrial(
       '<strong>Reminder: Self-paced trials</strong>\n\n' +
       'In the last 2 practice trials, SPACE was not pressed, so the coloured circles ran until the time limit.\n\n' +
-      'In <strong>SELF-PACED</strong> trials, you decide when to respond: press SPACE during the coloured circles whenever you want to report the rotation. Waiting longer earns more points, but only if you still remember the rotation well.\n\n' +
+      'In <strong>SELF-PACED</strong> trials, you control the timing, and decide for how long you want to keep the object in mind. Press SPACE during the coloured circles when you want to report the rotation. Waiting longer earns more points, but only if you still remember the rotation well.\n\n' +
       'Let\'s try 2 more practice trials.\n\n' +
       'Press <strong>Continue</strong> to start.'
     )],
