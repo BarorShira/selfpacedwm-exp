@@ -61,6 +61,10 @@
  *   9. Self-paced practice intro expanded: control of the timing, the points
  *      goal (longer = more points if remembered well), and the 1.25 s / 12 s
  *      limits.
+ *  10. Welcome screen reordered: goal sentence (+ "Please give it your full
+ *      attention.") now comes before the block/duration sentence; "You will
+ *      earn points based on how well you remember and how confident you are in
+ *      your answer." removed.
  *   Everything else as in pilot 5: 386 images, exact replay of the self-paced
  *   delays in the colour-matching block (new objects and orientations), 12 s
  *   limit with no points at the limit, calm limit wording, end questions.
@@ -991,9 +995,8 @@ function buildTimeline(jsPsych) {
   timeline.push(makeTextTrial(
     '<strong>Welcome!</strong>\n\n' +
     'In this experiment, you will see everyday objects on the screen, and your task will be to remember their orientation, that is, how each object is rotated, like the hands of a clock.\n\n' +
+    'Your goal is to earn as many points as possible. The longer you hold the object\'s rotation in mind before answering, the more points you earn, as long as you still remember it well. Please give it your full attention.\n\n' +
     'The experiment is divided into 12 blocks of 20 trials each. It takes about 80 to 120 minutes to complete.\n\n' +
-    'You will earn points based on how well you remember and how confident you are in your answer. Please give it your full attention.\n\n' +
-    'Your goal is to earn as many points as possible. The longer you hold the object\'s rotation in mind before answering, the more points you earn, as long as you still remember it well.\n\n' +
     'Press <strong>Continue</strong> to see what a single trial looks like.'
   ));
 
