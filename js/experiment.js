@@ -50,6 +50,10 @@
  *      trial, a reminder of the self-paced instructions is shown and the 2
  *      self-paced practice trials are repeated (at most 2 repeats). Logged as
  *      practiceRound (1 = first round).
+ *   7. Welcome screen adds a goal sentence before the trial description:
+ *      "Your goal is to earn as many points as possible. The longer you hold
+ *      the object's rotation in mind before answering, the more points you
+ *      earn, as long as you still remember it well." 
  *   Everything else as in pilot 5: 386 images, exact replay of the self-paced
  *   delays in the colour-matching block (new objects and orientations), 12 s
  *   limit with no points at the limit, calm limit wording, end questions.
@@ -982,6 +986,7 @@ function buildTimeline(jsPsych) {
     'In this experiment, you will see everyday objects on the screen, and your task will be to remember their orientation, that is, how each object is rotated, like the hands of a clock.\n\n' +
     'The experiment is divided into 12 blocks of 20 trials each. It takes about 80 to 120 minutes to complete.\n\n' +
     'You will earn points based on how well you remember and how confident you are in your answer. Please give it your full attention.\n\n' +
+    'Your goal is to earn as many points as possible. The longer you hold the object\'s rotation in mind before answering, the more points you earn, as long as you still remember it well.\n\n' +
     'Press <strong>Continue</strong> to see what a single trial looks like.'
   ));
 
