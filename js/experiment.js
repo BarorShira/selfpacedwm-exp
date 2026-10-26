@@ -30,8 +30,9 @@
  *  identity capture are all IDENTICAL to v1.
  * ═══════════════════════════════════════════════════════════════════════
  *
- *  PILOT 6 CHANGES (on top of the pilot-5 build, kept as js/experiment_pilot5.js):
- *   1. Object presentation back to 800 ms (IMAGE_DURATION_MS; pilot 5: 500 ms).
+ *  (Pilot numbering changed on 26 Oct 2026: the 22 Oct run is now pilot 4b; this build is pilot 5.)
+ *  PILOT 5 CHANGES (on top of the pilot-4b build, kept as js/experiment_pilot4b.js):
+ *   1. Object presentation back to 800 ms (IMAGE_DURATION_MS; pilot 4b: 500 ms).
  *   2. Waiting cues back to the pilot-3 wording: the self-paced block screen
  *      ("Waiting longer earns more points, but only if you still remember the
  *      rotation well."), the self-paced description on the points screen
@@ -65,12 +66,12 @@
  *      attention.") now comes before the block/duration sentence; "You will
  *      earn points based on how well you remember and how confident you are in
  *      your answer." removed.
- *   Everything else as in pilot 5: 386 images, exact replay of the self-paced
+ *   Everything else as in pilot 4b: 386 images, exact replay of the self-paced
  *   delays in the colour-matching block (new objects and orientations), 12 s
  *   limit with no points at the limit, calm limit wording, end questions.
  * ═══════════════════════════════════════════════════════════════════════
  *
- *  PILOT 5 CHANGES (on top of the pilot-4 build, kept as js/experiment_pilot4.js):
+ *  PILOT 4b CHANGES (on top of the pilot-4 build, kept as js/experiment_pilot4.js):
  *   1. Image set back to the 386 pilot-3 images (the 63 removed for pilot 4
  *      are restored).
  *   2. Exact replay: each colour-matching (yoked) block replays the delays of
@@ -125,11 +126,11 @@
  * ─────────────────────────────────────────────
  */
 const FIXATION_DURATION_MS  = 1500;   // fixation cross duration (ms)
-const IMAGE_DURATION_MS     = 800;    // object presentation duration (ms) - pilot 6: back to 800 ms (pilot 5 used 500 ms)
+const IMAGE_DURATION_MS     = 800;    // object presentation duration (ms) - pilot 5: back to 800 ms (pilot 4b used 500 ms)
 const MAX_DELAY_MS          = 12000;  // maximum delay before auto-termination (ms) - pilot 4: 12 s (was 10 s)
 
 /** ─────────────────────────────────────────────
- *  STIMULUS LIST  (386 image filenames - pilot 5: the pilot-3 set; pilot 4 had used 323)
+ *  STIMULUS LIST  (386 image filenames - pilot 4b: the pilot-3 set; pilot 4 had used 323)
  * ───────────────────────────────────────────── */
 const STIMULI = [
   "witchhat.png","goose.png","golfclubs.png","goldcup.png","goblet.png",
@@ -215,7 +216,7 @@ const STIMULI = [
 /** ─────────────────────────────────────────────
  *  EXPERIMENT PARAMETERS
  * ───────────────────────────────────────────── */
-const N_TOTAL_OBJECTS     = STIMULI.length;  // 386 (pilot 5: the 63 objects removed for pilot 4 are back)
+const N_TOTAL_OBJECTS     = STIMULI.length;  // 386 (pilot 4b: the 63 objects removed for pilot 4 are back)
 const TRIALS_PER_BLOCK    = 20;
 const N_SELF_PACED_BLOCKS = 6;               // 6 SP + 6 yoked = 12 total, 240 trials
 const N_TOTAL_BLOCKS      = N_SELF_PACED_BLOCKS * 2;
@@ -397,7 +398,7 @@ function applyBlockSettings(expBlock) {
     const pairStart  = state.sourcePairN * OBJECTS_PER_PAIR;
     const yokedStart = pairStart + TRIALS_PER_BLOCK;
     const yokedObjectRows = state.allObjectRows.slice(yokedStart, yokedStart + TRIALS_PER_BLOCK);
-    // Pilot 5: exact replay. Yoked trial i takes the delay (and target colour)
+    // Pilot 4b: exact replay. Yoked trial i takes the delay (and target colour)
     // of self-paced trial i, in the same order, so the sequence of delays and
     // the jumps between them are identical (was: shuffled within half-blocks).
     const sourceOrder = Array.from({length: TRIALS_PER_BLOCK}, (_, i) => i);
@@ -426,7 +427,7 @@ function applyBlockSettings(expBlock) {
 function setupTrial(trialInBlock) {
   state.trialInBlock = trialInBlock;
   state.objectRow    = state.rowsInBlock[trialInBlock];
-  // Pilot 5: yoked trials get a fresh random orientation, like self-paced
+  // Pilot 4b: yoked trials get a fresh random orientation, like self-paced
   // trials (was: the matched self-paced trial's orientation), so only the delay
   // sequence repeats, not the orientations or responses.
   state.startOri1    = randInt(1, 359);
@@ -480,7 +481,7 @@ function endDelay(elapsed, timedOut) {
   state.delayTimedOut = !!timedOut;
   state.bigPolygonFinalHue = state.hue;
   if (state.isPractice && state.conditionType === 'self_paced' && !state.delayTimedOut)
-    state.practiceSpacePresses++;   // pilot 6: practice check
+    state.practiceSpacePresses++;   // pilot 5: practice check
   if (state.conditionType === 'self_paced') {
     state.lastSelfPaced_trialInBlock.push(state.trialInBlock);
     state.lastSelfPaced_objectRow.push(state.objectRow);
@@ -924,7 +925,7 @@ function makeFeedbackTrial() {
 
       recordTrial({
         conditionType: state.conditionType, expBlock: state.expBlock,
-        practiceRound: (state.isPractice && state.conditionType === 'self_paced') ? state.practiceRound : null,   // pilot 6: 1 = first self-paced practice round, 2-3 = repeats
+        practiceRound: (state.isPractice && state.conditionType === 'self_paced') ? state.practiceRound : null,   // pilot 5: 1 = first self-paced practice round, 2-3 = repeats
         sourcePairN: state.sourcePairN, trialInBlock: state.trialInBlock,
         objectRow: state.objectRow, stimulusName: STIMULI[state.objectRow],
         fixationDurationMs: FIXATION_DURATION_MS,      // fixed timing parameter
@@ -933,7 +934,7 @@ function makeFeedbackTrial() {
         startOri1: state.startOri1, delayDuration: state.delayDuration,
         delayTimedOut: state.delayTimedOut,            // true if trial hit the 12 s limit (self-paced: no points)
         yokedScheduledDelay: state.yokedScheduledDelay,
-        yokedSourceTrialInBlock: state.conditionType === 'yoked'   // pilot 5: which self-paced trial this delay replays
+        yokedSourceTrialInBlock: state.conditionType === 'yoked'   // pilot 4b: which self-paced trial this delay replays
           ? state.yoked_sourceTrialInBlock[state.trialInBlock] : null,
         smallPolygonHue: state.smallPolygonHue,        // inner-circle hue this trial
         targetHue: state.targetHue,                    // target outer hue (for yoked) / inner hue carried over (for SP)
@@ -1036,7 +1037,7 @@ function buildTimeline(jsPsych) {
     'Press <strong>Continue</strong> to start.'
   ));
 
-  // Pilot 6 practice check: if no SPACE is pressed in either self-paced
+  // Pilot 5 practice check: if no SPACE is pressed in either self-paced
   // practice trial (both run to the time limit), show a reminder of the
   // self-paced instructions and repeat the 2 self-paced practice trials
   // (same practice objects, new orientations). At most 2 repeats.
@@ -1196,7 +1197,7 @@ function buildTimeline(jsPsych) {
     timeline.push(makeBlockEndTrial());
   }
 
-  // Pilot 5: two short questions at the very end. The answer is stored on the
+  // Pilot 4b: two short questions at the very end. The answer is stored on the
   // jsPsych data row as debrief_question / debrief_answer.
   function makeDebriefQuestion(id, text, choices) {
     return {
